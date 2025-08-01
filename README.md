@@ -23,6 +23,7 @@ These indicators provide real-time insights into market conditions:
 - **Near-term Stress Ratio**: ^VIX9D/^VIX for event window analysis
 - **3M Term Slope**: ^VIX/^VIX3M for contango/backwardation analysis
 - **6M Term Slope**: ^VIX/^VIX6M for long-term volatility regime assessment
+- **Buffett Indicator**: Total Market Cap/GDP for macro valuation regime detection
 
 ### Velocity Indicators (1D, 1W, 1M)
 

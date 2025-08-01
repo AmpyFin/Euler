@@ -1,10 +1,10 @@
-# Euler-Model
+# Euler System
 
 A sophisticated volatility regime detection system that analyzes hidden macrotrends to identify market regime shifts. This system is designed not to predict specific market movements, but rather to understand the underlying volatility environment and market stress conditions.
 
 ## System Overview
 
-The Euler model combines multiple volatility indicators across different time horizons to provide a holistic view of market conditions. It processes data on three main dimensions:
+The Euler system combines multiple volatility indicators across different time horizons to provide a holistic view of market conditions. It processes data on three main dimensions:
 
 1. **Live Indicators**: Real-time market stress and volatility metrics
 2. **Velocity Indicators**: Rate of change analysis (1D, 1W, 1M basis)

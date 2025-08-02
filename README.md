@@ -2,6 +2,165 @@
 
 A sophisticated volatility regime detection system that analyzes hidden macrotrends to identify market regime shifts. This system is designed not to predict specific market movements, but rather to understand the underlying volatility environment and market stress conditions.
 
+## Quick Start
+
+```bash
+# Install dependencies
+pip install -r requirements.txt
+
+# Run the system
+python clients/system_client.py
+```
+
+## System Architecture
+
+Euler uses a multi-threaded, event-driven architecture with four main components:
+
+1. **FetchClient**: Continuously fetches market data (1-second intervals)
+2. **ProcessingClient**: Calculates risk scores for each indicator
+3. **InferenceClient**: Computes composite risk score and market regime
+4. **SystemClient**: Orchestrates the system and provides callback interface
+
+### Output Format
+
+The system outputs a composite risk score (0-100) and market regime through:
+1. Console logging
+2. File logging (`logs/system.log`)
+3. Callback interface for external system integration
+
+Example output:
+```
+2025-08-02 15:09:13 | INFO | Market Risk Score: 78.49 | Current Regime: 🟥 HIGH STRESS
+```
+
+## Integration Guide
+
+### Using Euler as a Subsystem
+
+1. Import the SystemClient:
+```python
+from clients.system_client import SystemClient
+
+def my_callback(analysis):
+    """Handle market analysis updates.
+    
+    Args:
+        analysis: MarketAnalysis object with:
+            - score (float): 0-100 risk score
+            - regime (MarketRegime): Current regime enum
+            - data (Dict[str, ProcessedData]): Individual indicator data
+    """
+    score = analysis.score  # 0-100 float
+    regime = analysis.regime  # MarketRegime enum
+    # Your system's logic here
+
+# Initialize and start
+system = SystemClient(callback=my_callback)
+system.start()
+```
+
+2. The callback receives updates whenever new data is processed, typically every 1-2 seconds.
+
+## Customization Guide
+
+### Adding New Indicators
+
+1. Create indicator class in `indicators/live_indicators/`:
+```python
+from indicators.indicator import Indicator
+
+class MyNewIndicator(Indicator):
+    def __init__(self, adapter):
+        super().__init__(adapter)
+    
+    def get_name(self) -> str:
+        return "My Indicator Name"
+        
+    def fetch_last_quote(self) -> float:
+        return self.adapter.fetch_last_quote(self.get_name())
+```
+
+2. Register in `registries/indicator_registry.py`:
+```python
+from indicators.live_indicators.my_new_indicator import MyNewIndicator
+
+indicator_to_adapter_registry = {
+    "MyNewIndicator": YFinanceAdapter  # or your custom adapter
+}
+```
+
+### Adding New Data Adapters
+
+1. Create adapter class in `adapters/`:
+```python
+from adapters.adapter import Adapter
+from typing import Optional, Tuple, Dict, Any
+from datetime import datetime
+
+class MyNewAdapter(Adapter):
+    def fetch_last_quote(self, symbol: str) -> float:
+        # Implement data fetching logic
+        pass
+        
+    def fetch_last_quote_with_date(self, symbol: str) -> Tuple[float, datetime]:
+        # Implement with timestamp
+        pass
+        
+    def fetch_historical_data(
+        self, 
+        symbol: str, 
+        start: Optional[datetime] = None,
+        end: Optional[datetime] = None
+    ) -> Dict[datetime, Any]:
+        # Implement historical data fetching
+        pass
+```
+
+2. Use in indicator initialization:
+```python
+my_adapter = MyNewAdapter()
+my_indicator = MyNewIndicator(my_adapter)
+```
+
+### Adding New Clients
+
+1. Create client class in `clients/`:
+```python
+import logging
+from queue import Queue
+from threading import Thread, Event
+
+class MyNewClient:
+    def __init__(self):
+        self.input_queue = Queue()
+        self.output_queue = Queue()
+        self.should_run = False
+        self.logger = logging.getLogger('MyNewClient')
+        
+    def start(self):
+        self.should_run = True
+        self.process_thread = Thread(target=self._process_loop)
+        self.process_thread.start()
+        
+    def stop(self):
+        self.should_run = False
+        self.process_thread.join()
+        
+    def _process_loop(self):
+        while self.should_run:
+            # Implement processing logic
+            pass
+```
+
+2. Integrate with SystemClient:
+```python
+class SystemClient:
+    def __init__(self, callback=None):
+        self.my_new_client = MyNewClient()
+        # Connect queues
+        self.my_new_client.output_queue = self.some_other_client.input_queue
+```
+
 ## System Overview
 
 The Euler system combines multiple volatility indicators across different time horizons to provide a holistic view of market conditions. It processes data on three main dimensions:

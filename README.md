@@ -10,6 +10,70 @@ The Euler system combines multiple volatility indicators across different time h
 2. **Velocity Indicators**: Rate of change analysis (1D, 1W, 1M basis)
 3. **Acceleration Indicators**: Change in rate of change (1D, 1W, 1M basis)
 
+## Market Regime Levels (0-100 Scale)
+
+The system outputs a score from 0-100 and classifies market conditions into ten distinct regimes:
+
+1. **Extreme Calm (0-10)** 🟩
+   - Unusually low volatility across all timeframes
+   - Strong risk appetite, potentially complacent conditions
+   - Historical examples: Extended bull markets, peak QE periods
+   - Warning: May indicate market complacency
+
+2. **Low Stress (10-20)** 🟩
+   - Below-average volatility
+   - Healthy market functioning with normal trading volumes
+   - Term structure in steady contango
+   - Favorable conditions for systematic strategies
+
+3. **Stable (20-30)** 🟩
+   - Normal market functioning
+   - Volatility near long-term averages
+   - Balanced put/call activity
+   - Constructive trading environment
+
+4. **Mild Uncertainty (30-40)** 🟨
+   - Early signs of hedging activity
+   - Slight elevation in near-term volatility
+   - Minor term structure distortions
+   - Typical pre-event positioning
+
+5. **Elevated Caution (40-50)** 🟨
+   - Above-average volatility
+   - Increased hedging costs
+   - Early signs of risk reduction
+   - Heightened market sensitivity
+
+6. **High Uncertainty (50-60)** 🟧
+   - Significant volatility elevation
+   - Notable increase in tail risk pricing
+   - Term structure flattening
+   - Active defensive positioning
+
+7. **Stress Conditions (60-70)** 🟥
+   - Material risk reduction across assets
+   - Volatility term structure inversions
+   - Elevated put/call ratios
+   - Liquidity deterioration
+
+8. **High Stress (70-80)** 🟥
+   - Broad risk aversion
+   - Sharp volatility spikes
+   - Significant defensive positioning
+   - Systematic strategy deleveraging
+
+9. **Severe Stress (80-90)** ⬛
+   - Acute market stress
+   - Extreme volatility levels
+   - Widespread forced liquidation
+   - Major systematic strategy disruption
+
+10. **Crisis (90-100)** ⬛
+    - Extreme market dislocation
+    - Historic volatility levels
+    - Market functioning impaired
+    - Potential intervention conditions
+
 ### Live Indicators
 
 These indicators provide real-time insights into market conditions:
@@ -45,7 +109,7 @@ Monitor changes in the rate of change to detect regime shift catalysts:
 
 1. **Standardization**:
    - Compute z-scores (20d/60d/120d)
-   - Track persistence counters for key ratios
+   - Track persistence counters for key ratios 
    - Winsorize 1% tails to handle outliers
 
 2. **Market State Classification**:

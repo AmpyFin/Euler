@@ -4,12 +4,9 @@ Client for processing market data.
 import os
 import sys
 from pathlib import Path
-import time
 from typing import Dict, List, Tuple, Optional
 from dataclasses import dataclass
 from datetime import datetime
-import threading
-import queue
 import logging
 
 # Add project root to Python path
@@ -35,10 +32,6 @@ class ProcessingClient:
         """Initialize the processing client."""
         logger.info("Initializing ProcessingClient")
         self.data_buffer: Dict[str, MarketData] = {}
-        self.input_queue: queue.Queue = queue.Queue()
-        self.output_queue: queue.Queue = queue.Queue()
-        self.should_run = True
-        self.processing_thread = threading.Thread(target=self.process_data)
         logger.info("ProcessingClient initialized successfully")
         
     def calculate_score(self, indicator_name: str, value: float) -> float:
@@ -129,53 +122,3 @@ class ProcessingClient:
         except Exception as e:
             logger.error(f"Error calculating score for {indicator_name}: {str(e)}")
             return 50.0  # Default score on error
-    
-    def process_data(self):
-        """Process market data continuously."""
-        logger.info("Starting data processing loop")
-        
-        while self.should_run:
-            try:
-                # Get market data with timeout
-                market_data: MarketData = self.input_queue.get(timeout=1.0)
-                
-                # Update buffer
-                self.data_buffer[market_data.indicator_name] = market_data
-                
-                # Calculate score
-                score = self.calculate_score(market_data.indicator_name, market_data.value)
-                
-                # Create processed data
-                processed = ProcessedData(
-                    indicator_name=market_data.indicator_name,
-                    raw_value=market_data.value,
-                    score=score,
-                    timestamp=market_data.timestamp  # Pass through the original timestamp
-                )
-                
-                # Log processing result with detailed info
-                logger.info(
-                    f"Processed {processed.indicator_name:25} | "
-                    f"Raw: {processed.raw_value:8.2f} → Score: {processed.score:6.2f}"
-                )
-                
-                # Put processed data in output queue
-                self.output_queue.put(processed)
-                
-            except queue.Empty:
-                continue
-            except Exception as e:
-                logger.error(f"Error processing data: {str(e)}")
-    
-    def start(self):
-        """Start the processing client."""
-        logger.info("Starting ProcessingClient")
-        self.processing_thread.start()
-        logger.info("ProcessingClient started successfully")
-    
-    def stop(self):
-        """Stop the processing client."""
-        logger.info("Stopping ProcessingClient")
-        self.should_run = False
-        self.processing_thread.join()
-        logger.info("ProcessingClient stopped")

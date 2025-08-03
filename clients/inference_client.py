@@ -4,12 +4,9 @@ Client for market data inference and analysis.
 import os
 import sys
 from pathlib import Path
-import time
 from typing import Dict, List, Tuple, Optional
 from dataclasses import dataclass
 from datetime import datetime
-import threading
-import queue
 from enum import Enum
 import logging
 
@@ -49,10 +46,6 @@ class MarketAnalysis:
 class InferenceClient:
     def __init__(self):
         self.data_buffer: Dict[str, ProcessedData] = {}
-        self.input_queue: queue.Queue = queue.Queue()
-        self.output_queue: queue.Queue = queue.Queue()
-        self.should_run = True
-        self.inference_thread = threading.Thread(target=self.run_inference)
 
     def get_regime_from_score(self, score: float) -> MarketRegime:
         for regime in MarketRegime:
@@ -215,6 +208,10 @@ class InferenceClient:
             
         return weight
 
+    def get_all_indicators(self) -> List[str]:
+        """Get list of all registered indicators."""
+        return list(self.get_indicator_weight.__defaults__[0].keys())  # Get keys from base_weights dict
+
     def analyze_market_state(self) -> Optional[MarketAnalysis]:
         """Analyze current market state using all available indicators."""
         if not self.data_buffer:
@@ -253,42 +250,3 @@ class InferenceClient:
         logger.info("-" * 80)
 
         return MarketAnalysis(avg_score, regime, self.data_buffer.copy())
-
-    def run_inference(self):
-        """Run market inference continuously."""
-        logger.info("Starting inference loop")
-        
-        while self.should_run:
-            try:
-                # Get new data from input queue
-                data: ProcessedData = self.input_queue.get(timeout=1.0)
-                
-                # Log received data
-                logger.debug(
-                    f"Received data: {data.indicator_name:25} | "
-                    f"Score: {data.score:6.2f}"
-                )
-                
-                self.data_buffer[data.indicator_name] = data
-
-                # Analyze market state
-                analysis = self.analyze_market_state()
-                if analysis:
-                    self.output_queue.put(analysis)
-
-            except queue.Empty:
-                continue
-            except Exception as e:
-                logger.error(f"Error in inference loop: {str(e)}")
-
-    def start(self):
-        """Start the inference client."""
-        logger.info("Starting InferenceClient")
-        self.inference_thread.start()
-        logger.info("InferenceClient started successfully")
-
-    def stop(self):
-        logger.info("Stopping InferenceClient")
-        self.should_run = False
-        self.inference_thread.join()
-        logger.info("InferenceClient stopped")

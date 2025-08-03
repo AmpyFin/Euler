@@ -4,8 +4,9 @@ Adapter for fetching Buffett Indicator data.
 """
 from datetime import datetime, timedelta
 from typing import Optional, Tuple, Dict, Any
-import yfinance as yf
 import requests
+from bs4 import BeautifulSoup
+import re
 
 from .adapter import Adapter
 
@@ -14,11 +15,11 @@ class BuffettIndicatorAdapter(Adapter):
     
     def __init__(self):
         """Initialize the adapter."""
-        self.wilshire_index = "^W5000"  # Wilshire 5000 Total Market Index
+        self.url = "https://buffettindicator.net/"
         
     def fetch_last_quote(self, index: Optional[str] = None) -> float:
         """
-        Fetch the latest Buffett Indicator value.
+        Fetch the latest Buffett Indicator value by web scraping buffettindicator.net.
         
         Returns:
             float: The latest Buffett Indicator value (Market Cap / GDP * 100)
@@ -27,25 +28,36 @@ class BuffettIndicatorAdapter(Adapter):
             ValueError: If the data cannot be fetched or is invalid
         """
         try:
-            # Get Wilshire 5000 data (proxy for total market cap)
-            ticker = yf.Ticker(self.wilshire_index)
-            market_data = ticker.history(period="1d")
-            if market_data.empty:
-                raise ValueError("No market cap data available")
+            # Fetch the webpage content
+            response = requests.get(self.url)
+            response.raise_for_status()  # Raise an exception for bad status codes
             
-            market_cap = float(market_data['Close'].iloc[-1])
+            # Parse the HTML content
+            soup = BeautifulSoup(response.text, 'html.parser')
             
-            # For demo purposes, using a fixed GDP value
-            # In production, this should fetch the latest GDP data from a reliable source
-            gdp = 25460  # Latest US GDP in billions (Q2 2023)
+            # Look for the text containing the ratio
+            target_text = "Based on today's updated data, the Market Cap to GDP Ratio is"
+            for text in soup.stripped_strings:
+                if target_text in text:
+                    # Extract the number that follows the text
+                    match = re.search(rf"{target_text}\s*([\d.]+)", text)
+                    if match:
+                        return float(match.group(1))
             
-            # Calculate Buffett Indicator (Market Cap / GDP * 100)
-            buffett_indicator = (market_cap / gdp) * 100
+            # If we didn't find it in the text, try looking in script tags for autoRatio
+            script_tags = soup.find_all('script')
+            for script in script_tags:
+                if script.string and 'autoRatio' in script.string:
+                    match = re.search(r'let autoRatio = ([\d.]+);', script.string)
+                    if match:
+                        return float(match.group(1))
             
-            return buffett_indicator
+            raise ValueError("Could not find Buffett Indicator value in webpage")
             
-        except Exception as e:
-            raise ValueError(f"Failed to calculate Buffett Indicator: {str(e)}")
+        except requests.RequestException as e:
+            raise ValueError(f"Failed to fetch webpage: {str(e)}")
+        except (ValueError, AttributeError) as e:
+            raise ValueError(f"Failed to parse Buffett Indicator value: {str(e)}")
     
     def fetch_last_quote_with_date(self, index: Optional[str] = None) -> Tuple[float, datetime]:
         """
@@ -75,25 +87,6 @@ class BuffettIndicatorAdapter(Adapter):
             
         Raises:
             ValueError: If the data cannot be fetched or is invalid
+            NotImplementedError: Historical data is not available via web scraping
         """
-        try:
-            # Get Wilshire 5000 historical data
-            ticker = yf.Ticker(self.wilshire_index)
-            market_data = ticker.history(period=f"{days}d")
-            if market_data.empty:
-                raise ValueError("No historical market cap data available")
-            
-            # For demo purposes, using a fixed GDP value
-            gdp = 25460  # Latest US GDP in billions (Q2 2023)
-            
-            # Calculate historical Buffett Indicator values
-            historical_data = {}
-            for date, row in market_data.iterrows():
-                market_cap = float(row['Close'])
-                buffett_indicator = (market_cap / gdp) * 100
-                historical_data[date.to_pydatetime()] = buffett_indicator
-            
-            return historical_data
-            
-        except Exception as e:
-            raise ValueError(f"Failed to fetch historical Buffett Indicator data: {str(e)}")
+        raise NotImplementedError("Historical data fetching for Buffett Indicator via web scraping is not implemented.")

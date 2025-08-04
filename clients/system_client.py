@@ -90,7 +90,6 @@ class SystemGUI(QMainWindow):
         # Setup tabs
         self._setup_overview_tab()
         self._setup_details_tab()
-        self._setup_health_tab()
         
         logger.info("GUI initialized")
     
@@ -168,40 +167,7 @@ class SystemGUI(QMainWindow):
         
         self.tabs.addTab(details_tab, "Indicator Details")
     
-    def _setup_health_tab(self):
-        """Setup the health tab with latency graphs and metrics."""
-        health_tab = QWidget()
-        layout = QVBoxLayout(health_tab)
-        
-        # Latency graph
-        graph_frame = QFrame()
-        graph_frame.setFrameStyle(QFrame.StyledPanel)
-        graph_layout = QVBoxLayout(graph_frame)
-        
-        self.health_fig = Figure(figsize=(12, 6))
-        self.health_ax = self.health_fig.add_subplot(111)
-        self.health_canvas = FigureCanvasQTAgg(self.health_fig)
-        graph_layout.addWidget(self.health_canvas)
-        
-        layout.addWidget(graph_frame)
-        
-        # Latency metrics
-        metrics_frame = QFrame()
-        metrics_frame.setFrameStyle(QFrame.StyledPanel)
-        metrics_layout = QVBoxLayout(metrics_frame)
-        
-        metrics_label = QLabel("Latency Statistics")
-        metrics_label.setStyleSheet("font-size: 14px; font-weight: bold;")
-        metrics_layout.addWidget(metrics_label)
-        
-        self.metrics_text = QTextEdit()
-        self.metrics_text.setReadOnly(True)
-        self.metrics_text.setStyleSheet("font-family: monospace;")
-        metrics_layout.addWidget(self.metrics_text)
-        
-        layout.addWidget(metrics_frame)
-        
-        self.tabs.addTab(health_tab, "System Health")
+
     
     def _create_indicator_frame(self, name: str):
         """Create or get a frame for an indicator."""
@@ -267,22 +233,7 @@ class SystemGUI(QMainWindow):
             self.score_fig.tight_layout()
             self.score_canvas.draw()
     
-    def _update_health_graph(self):
-        """Update the latency history graph."""
-        self.health_ax.clear()
-        if len(self.history['timestamps']) > 0:
-            for indicator, latencies in self.history['latencies'].items():
-                if len(latencies) > 0:
-                    self.health_ax.plot(self.history['timestamps'][-len(latencies):], 
-                                      latencies, '-', label=indicator, linewidth=1)
-            self.health_ax.set_title('Indicator Fetch Latency History')
-            self.health_ax.set_ylabel('Latency (seconds)')
-            self.health_ax.legend(loc='upper left', bbox_to_anchor=(1, 1))
-            self.health_ax.grid(True)
-            for label in self.health_ax.get_xticklabels():
-                label.set_rotation(45)
-            self.health_fig.tight_layout()
-            self.health_canvas.draw()
+
     
     def update_display(self, analysis):
         """Update the GUI with new analysis results."""

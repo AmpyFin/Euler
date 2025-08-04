@@ -130,11 +130,10 @@ Example output:
 
 ## GUI Interface
 
-When `GUI_mode = True`, the system displays a PyQt5 interface with three tabs:
+When `GUI_mode = True`, the system displays a PyQt5 interface with two tabs:
 
 1. **Overview**: Overall market score, regime, and score history graph
 2. **Details**: Individual indicator data with raw values, risk scores, weights, and contribution percentages
-3. **Health**: System latency statistics and performance metrics
 
 The GUI updates automatically every 60 seconds when `run_continuously = True`.
 

@@ -2,6 +2,12 @@
 
 A sophisticated volatility regime detection system that analyzes hidden macrotrends to identify market regime shifts. This system is designed not to predict specific market movements, but rather to understand the underlying volatility environment and market stress conditions.
 
+## Demo
+
+[![Euler System Demo](https://img.youtube.com/vi/F0XQY0QOHkM/0.jpg)](https://www.youtube.com/watch?v=F0XQY0QOHkM)
+
+*Click the image above to watch the demo video*
+
 ## Installation
 
 1. **Clone the repository**:

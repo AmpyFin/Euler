@@ -52,3 +52,16 @@ indicators: List[Type] = [
     SixMonthTermSlopeIndicator,
     BuffettIndicator,
 ]
+
+indicator_to_weights: Dict[str, float] = {
+    "^VIX9D": 0.11,                            # 9-day VIX
+    "^VIX": 0.11,                              # VIX (1M)
+    "^VIX3M": 0.09,                            # VIX3M
+    "^VIX6M": 0.08,                            # VIX6M
+    "Near-term Stress Ratio": 0.07,            # Near-Term Stress (9D/1M)
+    "3M Term Slope": 0.07,                     # 3M Term Slope (1M/3M)
+    "6M Term Slope": 0.06,                     # 6M Term Slope (1M/6M)
+    "^SKEW": 0.11,                             # SKEW Index
+    "Put/Call Ratio": 0.15,                    # Put/Call Ratio
+    "Buffett Indicator": 0.15,                 # Buffett Indicator
+}

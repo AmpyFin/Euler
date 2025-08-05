@@ -41,9 +41,13 @@ class AnalysisWorker(QThread):
         """Run analysis cycles continuously."""
         while self.running:
             try:
+                logger.info("Worker thread: Running analysis cycle")
                 analysis = self.system_client.run_analysis_cycle()
                 if analysis:
+                    logger.info("Worker thread: Analysis complete, emitting signal")
                     self.analysisComplete.emit(analysis)
+                else:
+                    logger.info("Worker thread: Analysis returned None")
             except Exception as e:
                 logger.error(f"Error in analysis cycle: {str(e)}")
             
@@ -361,7 +365,7 @@ class SystemClient:
         self.broadcast_network = getattr(control, 'broadcast_network', '127.0.0.1')
         self.broadcast_port = getattr(control, 'broadcast_port', 5000)
         
-        # Initialize network socket for broadcast mode
+        # Initialize network socket for unicast mode
         self.socket = None
         if self.broadcast_mode:
             self.socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -369,7 +373,7 @@ class SystemClient:
             self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
             # Bind to address for sending
             self.socket.bind(('', 0))  # Bind to random port for sending
-            logger.info(f"Broadcasting enabled on {self.broadcast_network}:{self.broadcast_port}")
+            logger.info(f"Unicast sending enabled to {self.broadcast_network}:{self.broadcast_port}")
         
         # Initialize GUI if needed
         self.gui = SystemGUI(self.inference_client) if self.gui_mode else None
@@ -382,7 +386,9 @@ class SystemClient:
     def handle_analysis_results(self, analysis):
         """Handle analysis results from worker thread."""
         try:
+            logger.info("handle_analysis_results called - processing analysis")
             if self.broadcast_mode:
+                logger.info("Broadcast mode enabled, calling broadcast_analysis")
                 self.broadcast_analysis(analysis)
             
             if self.gui:
@@ -418,17 +424,14 @@ class SystemClient:
                 self.worker.analysisComplete.connect(self.handle_analysis_results)
                 self.worker.start()
                 
+                # Always start Qt event loop to handle signals
+                logger.info("Starting Qt event loop")
                 if self.gui:
-                    logger.info("Starting GUI")
+                    logger.info("GUI mode enabled")
                     self.gui.run()
-                    self.app.exec_()  # Start Qt event loop
-                else:
-                    # Keep main thread alive
-                    try:
-                        while True:
-                            time.sleep(1)
-                    except KeyboardInterrupt:
-                        pass
+                
+                # Start Qt event loop to handle worker thread signals
+                self.app.exec_()
             else:
                 logger.info("Running single analysis cycle")
                 analysis = self.run_analysis_cycle()
@@ -512,14 +515,15 @@ class SystemClient:
             
         try:
             message = f"EULER|{analysis.score:.2f}|{analysis.regime.label}"
-            logger.info(f"Broadcasting: {message}")
-            self.socket.sendto(
+            logger.info(f"Sending unicast message: {message}")
+            logger.info(f"Target: {self.broadcast_network}:{self.broadcast_port}")
+            bytes_sent = self.socket.sendto(
                 message.encode(), 
                 (self.broadcast_network, self.broadcast_port)
             )
-            logger.info("Broadcast sent successfully")
+            logger.info(f"Unicast sent successfully: {bytes_sent} bytes")
         except Exception as e:
-            logger.error(f"Error broadcasting analysis: {str(e)}")
+            logger.error(f"Error sending unicast message: {str(e)}")
 
 def main():
     """Run the market analysis system."""

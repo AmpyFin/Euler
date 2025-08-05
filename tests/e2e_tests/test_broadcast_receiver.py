@@ -18,14 +18,13 @@ def main():
     
     # Allow reuse of address/port
     sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-    sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
     
     # Set socket timeout to handle regular updates
     sock.settimeout(1.0)
     
     # Bind to address and port
-    server_address = ('', 5000)  # Bind to all interfaces
-    print(f'\nStarting Euler Market Analysis Monitor on port 5000')
+    server_address = ('', 5001)  # Bind to all interfaces to receive unicast packets
+    print(f'\nStarting Euler Market Analysis Monitor on port {server_address[1]}')
     print('Press Ctrl+C to exit\n')
     sock.bind(server_address)
     
@@ -33,6 +32,7 @@ def main():
     last_update = None
     
     try:
+        print("Waiting for messages...")
         while True:
             try:
                 data, addr = sock.recvfrom(4096)

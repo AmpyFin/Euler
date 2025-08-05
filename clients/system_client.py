@@ -51,8 +51,8 @@ class AnalysisWorker(QThread):
             except Exception as e:
                 logger.error(f"Error in analysis cycle: {str(e)}")
             
-            # Sleep for 60 seconds
-            for _ in range(60):
+            # Sleep for 10 seconds
+            for _ in range(10):
                 if not self.running:
                     break
                 QThread.sleep(1)

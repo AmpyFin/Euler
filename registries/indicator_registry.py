@@ -53,15 +53,15 @@ indicators: List[Type] = [
     BuffettIndicator,
 ]
 
-indicator_to_weights: Dict[str, float] = {
-    "^VIX9D": 0.11,                            # 9-day VIX
-    "^VIX": 0.11,                              # VIX (1M)
-    "^VIX3M": 0.09,                            # VIX3M
-    "^VIX6M": 0.08,                            # VIX6M
-    "Near-term Stress Ratio": 0.07,            # Near-Term Stress (9D/1M)
-    "3M Term Slope": 0.07,                     # 3M Term Slope (1M/3M)
-    "6M Term Slope": 0.06,                     # 6M Term Slope (1M/6M)
-    "^SKEW": 0.11,                             # SKEW Index
-    "Put/Call Ratio": 0.15,                    # Put/Call Ratio
-    "Buffett Indicator": 0.15,                 # Buffett Indicator
+indicator_to_weights = {
+    "Buffett Indicator":       0.20,  # valuation "pilot light" sets baseline risk
+    "SPY Put/Call Ratio":      0.10,  # flows, but lighter than a pure tactical model
+    "^VIX9D":                  0.07,  # shock sensor
+    "Near-term Stress Ratio":  0.12,  # VIX9D / VIX(1M) → backwardation/stress
+    "3M Term Slope":           0.16,  # VIX(1M) / VIX(3M) → regime backdrop
+    "6M Term Slope":           0.12,  # VIX(1M) / VIX(6M)
+    "^VIX":                    0.07,  # 30-day implied level
+    "^SKEW":                   0.06,  # priced tail risk
+    "^VIX3M":                  0.06,  # medium anchor
+    "^VIX6M":                  0.04,  # slow anchor
 }

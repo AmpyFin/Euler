@@ -27,6 +27,7 @@ from clients.fetch_client import FetchClient, MarketData
 from clients.processing_client import ProcessingClient, ProcessedData
 from clients.inference_client import InferenceClient, MarketAnalysis
 from clients.logging_config import system_logger as logger
+from random import randint
 
 class AnalysisWorker(QThread):
     """Worker thread for running analysis cycles."""
@@ -51,8 +52,8 @@ class AnalysisWorker(QThread):
             except Exception as e:
                 logger.error(f"Error in analysis cycle: {str(e)}")
             
-            # Sleep for 10 seconds
-            for _ in range(10):
+            # Sleep for 10-30 seconds
+            for _ in range(randint(10, 30)):
                 if not self.running:
                     break
                 QThread.sleep(1)

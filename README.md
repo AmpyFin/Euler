@@ -4,7 +4,7 @@ A sophisticated volatility regime detection system that analyzes hidden macrotre
 
 ## Demo
 
-[![Euler System Demo](https://www.youtube.com/watch?v=9MivM2AdHtM/0.jpg)](https://www.youtube.com/watch?v=9MivM2AdHtM)
+[![Euler System Demo](https://img.youtube.com/vi/9MivM2AdHtM/0.jpg)](https://www.youtube.com/watch?v=9MivM2AdHtM)
 
 *Click the image above to watch the demo video*
 

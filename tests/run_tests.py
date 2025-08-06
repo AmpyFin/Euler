@@ -1,82 +1,163 @@
+#!/usr/bin/env python3
 """
-Test runner script that ensures proper environment setup.
+Test runner for the Euler market analysis system.
 """
-import os
 import sys
-import glob
-from typing import List
+import os
 import subprocess
+import argparse
+from pathlib import Path
 
-def setup_environment():
-    """Set up the test environment."""
-    # Add project root to Python path
-    project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    if project_root not in sys.path:
-        sys.path.insert(0, project_root)
-    
-    # Set PYTHONPATH environment variable
-    os.environ['PYTHONPATH'] = project_root
+# Add project root to Python path
+project_root = str(Path(__file__).parent.parent)
+sys.path.insert(0, project_root)
 
-def find_test_files() -> List[str]:
-    """Find all test files in the test directories."""
-    test_files = []
-    test_dirs = ['e2e_tests', 'integration_tests', 'unit_tests']
-    
-    for test_dir in test_dirs:
-        pattern = os.path.join(os.path.dirname(__file__), test_dir, '*.py')
-        test_files.extend([f for f in glob.glob(pattern) if not f.endswith('__init__.py')])
-    
-    return test_files
 
-def run_test(test_file: str) -> bool:
-    """Run a single test file."""
-    print(f"\nRunning test: {os.path.basename(test_file)}")
-    print("="*80)
+def run_unit_tests(verbose=False, coverage=False):
+    """Run unit tests."""
+    print("Running unit tests...")
     
-    result = subprocess.run([sys.executable, test_file], 
-                          env=dict(os.environ),
-                          capture_output=True,
-                          text=True)
+    cmd = [
+        sys.executable, "-m", "pytest",
+        "tests/unit_tests/",
+        "-v" if verbose else "-q",
+        "--tb=short"
+    ]
     
-    # Print output
-    if result.stdout:
-        print(result.stdout)
-    if result.stderr:
-        print(result.stderr, file=sys.stderr)
-        
+    if coverage:
+        cmd.extend([
+            "--cov=clients",
+            "--cov=adapters", 
+            "--cov=indicators",
+            "--cov=registries",
+            "--cov-report=term-missing",
+            "--cov-report=html:htmlcov"
+        ])
+    
+    result = subprocess.run(cmd, cwd=project_root)
     return result.returncode == 0
 
+
+def run_integration_tests(verbose=False):
+    """Run integration tests."""
+    print("Running integration tests...")
+    
+    cmd = [
+        sys.executable, "-m", "pytest",
+        "tests/integration_tests/",
+        "-v" if verbose else "-q",
+        "--tb=short"
+    ]
+    
+    result = subprocess.run(cmd, cwd=project_root)
+    return result.returncode == 0
+
+
+def run_all_tests(verbose=False, coverage=False):
+    """Run all tests."""
+    print("Running all tests...")
+    
+    cmd = [
+        sys.executable, "-m", "pytest",
+        "tests/",
+        "-v" if verbose else "-q",
+        "--tb=short"
+    ]
+    
+    if coverage:
+        cmd.extend([
+            "--cov=clients",
+            "--cov=adapters",
+            "--cov=indicators", 
+            "--cov=registries",
+            "--cov-report=term-missing",
+            "--cov-report=html:htmlcov"
+        ])
+    
+    result = subprocess.run(cmd, cwd=project_root)
+    return result.returncode == 0
+
+
+def install_test_dependencies():
+    """Install test dependencies."""
+    print("Installing test dependencies...")
+    
+    test_requirements = [
+        "pytest>=7.0.0",
+        "pytest-cov>=4.0.0",
+        "pytest-mock>=3.10.0",
+        "pytest-html>=3.1.0"
+    ]
+    
+    for req in test_requirements:
+        cmd = [sys.executable, "-m", "pip", "install", req]
+        result = subprocess.run(cmd, cwd=project_root)
+        if result.returncode != 0:
+            print(f"Failed to install {req}")
+            return False
+    
+    return True
+
+
 def main():
-    """Main test runner."""
-    # Set up environment
-    setup_environment()
+    """Main test runner function."""
+    parser = argparse.ArgumentParser(description="Run Euler market analysis tests")
+    parser.add_argument(
+        "--unit", 
+        action="store_true", 
+        help="Run only unit tests"
+    )
+    parser.add_argument(
+        "--integration", 
+        action="store_true", 
+        help="Run only integration tests"
+    )
+    parser.add_argument(
+        "--verbose", "-v", 
+        action="store_true", 
+        help="Verbose output"
+    )
+    parser.add_argument(
+        "--coverage", "-c", 
+        action="store_true", 
+        help="Generate coverage report"
+    )
+    parser.add_argument(
+        "--install-deps", 
+        action="store_true", 
+        help="Install test dependencies"
+    )
     
-    # Find test files
-    test_files = find_test_files()
-    if not test_files:
-        print("No test files found!")
-        return 1
-        
-    # Run tests
-    print(f"Found {len(test_files)} test files")
+    args = parser.parse_args()
     
-    passed = 0
-    failed = 0
+    # Install dependencies if requested
+    if args.install_deps:
+        if not install_test_dependencies():
+            sys.exit(1)
     
-    for test_file in test_files:
-        if run_test(test_file):
-            passed += 1
+    success = True
+    
+    try:
+        if args.unit:
+            success = run_unit_tests(args.verbose, args.coverage)
+        elif args.integration:
+            success = run_integration_tests(args.verbose)
         else:
-            failed += 1
-            
-    # Print summary
-    print("\nTest Summary")
-    print("="*80)
-    print(f"Total tests: {len(test_files)}")
-    print(f"Passed: {passed}")
-    print(f"Failed: {failed}")
+            success = run_all_tests(args.verbose, args.coverage)
+    except KeyboardInterrupt:
+        print("\nTests interrupted by user")
+        sys.exit(1)
+    except Exception as e:
+        print(f"Error running tests: {e}")
+        sys.exit(1)
     
-    return 1 if failed > 0 else 0
+    if success:
+        print("\n✅ All tests passed!")
+        sys.exit(0)
+    else:
+        print("\n❌ Some tests failed!")
+        sys.exit(1)
+
 
 if __name__ == "__main__":
-    sys.exit(main()) 
+    main() 

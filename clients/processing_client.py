@@ -2,13 +2,13 @@
 Client for processing market data.
 """
 
+import logging
 import os
 import sys
-from pathlib import Path
-from typing import Dict, List, Tuple, Optional
 from dataclasses import dataclass
 from datetime import datetime
-import logging
+from pathlib import Path
+from typing import Dict, List, Optional, Tuple
 
 # Add project root to Python path
 project_root = str(Path(__file__).parent.parent)

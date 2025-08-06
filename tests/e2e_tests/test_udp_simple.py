@@ -3,8 +3,8 @@ Simple UDP test to verify communication works.
 """
 
 import socket
-import time
 import threading
+import time
 
 
 def sender():

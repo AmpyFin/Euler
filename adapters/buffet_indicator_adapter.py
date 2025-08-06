@@ -2,11 +2,12 @@
 Adapter for fetching Buffett Indicator data.
 """
 
+import re
 from datetime import datetime, timedelta
-from typing import Optional, Tuple, Dict, Any
+from typing import Any, Dict, Optional, Tuple
+
 import requests
 from bs4 import BeautifulSoup
-import re
 
 from .adapter import Adapter
 

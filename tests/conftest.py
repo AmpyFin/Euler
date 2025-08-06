@@ -2,21 +2,22 @@
 Pytest configuration and fixtures for Euler market analysis tests.
 """
 
-import pytest
 import sys
-from pathlib import Path
-from unittest.mock import Mock, MagicMock
 from datetime import datetime
+from pathlib import Path
 from typing import Dict, List
+from unittest.mock import MagicMock, Mock
+
+import pytest
 
 # Add project root to Python path
 project_root = str(Path(__file__).parent.parent)
 sys.path.insert(0, project_root)
 
-from clients.fetch_client import MarketData
-from clients.processing_client import ProcessedData
-from clients.inference_client import MarketAnalysis, MarketRegime
 from adapters.adapter import Adapter
+from clients.fetch_client import MarketData
+from clients.inference_client import MarketAnalysis, MarketRegime
+from clients.processing_client import ProcessedData
 from indicators.indicator import Indicator
 
 

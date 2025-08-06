@@ -2,22 +2,21 @@
 Registry mapping indicator names to their corresponding data adapters.
 """
 
-from typing import Dict, Type, List
+from typing import Dict, List, Type
 
 from adapters.adapter import Adapter
-from adapters.yfinance_adapter import YFinanceAdapter
 from adapters.buffet_indicator_adapter import BuffettIndicatorAdapter
-
+from adapters.yfinance_adapter import YFinanceAdapter
 from indicators.live_indicators.buffet_indicator import BuffettIndicator
-from indicators.live_indicators.vix9d_indicator import VIX9DIndicator
-from indicators.live_indicators.vix_indicator import VIXIndicator
-from indicators.live_indicators.vix3m_indicator import VIX3MIndicator
-from indicators.live_indicators.vix6m_indicator import VIX6MIndicator
-from indicators.live_indicators.skew_indicator import SKEWIndicator
 from indicators.live_indicators.cpc_indicator import CPCIndicator
 from indicators.live_indicators.near_term_stress_ratio_indicator import NearTermStressRatioIndicator
-from indicators.live_indicators.three_month_term_slope_indicator import ThreeMonthTermSlopeIndicator
 from indicators.live_indicators.six_month_term_slope_indicator import SixMonthTermSlopeIndicator
+from indicators.live_indicators.skew_indicator import SKEWIndicator
+from indicators.live_indicators.three_month_term_slope_indicator import ThreeMonthTermSlopeIndicator
+from indicators.live_indicators.vix3m_indicator import VIX3MIndicator
+from indicators.live_indicators.vix6m_indicator import VIX6MIndicator
+from indicators.live_indicators.vix9d_indicator import VIX9DIndicator
+from indicators.live_indicators.vix_indicator import VIXIndicator
 
 # Registry mapping indicator class names to their adapter classes
 indicator_to_adapter_registry: Dict[str, Type[Adapter]] = {

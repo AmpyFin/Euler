@@ -3,14 +3,15 @@ Test GUI using PyQt5 and matplotlib.
 """
 
 import sys
-from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QLabel, QTabWidget, QFrame
-from PyQt5.QtCore import Qt
+
 import matplotlib
+from PyQt5.QtCore import Qt
+from PyQt5.QtWidgets import QApplication, QFrame, QLabel, QMainWindow, QTabWidget, QVBoxLayout, QWidget
 
 matplotlib.use("Qt5Agg")
+import numpy as np
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
 from matplotlib.figure import Figure
-import numpy as np
 
 
 class TestWindow(QMainWindow):

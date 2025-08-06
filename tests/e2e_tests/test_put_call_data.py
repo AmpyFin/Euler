@@ -10,8 +10,8 @@ from pathlib import Path
 project_root = str(Path(__file__).parent.parent.parent)
 sys.path.insert(0, project_root)
 
-import yfinance as yf
 import pandas as pd
+import yfinance as yf
 
 
 def main():

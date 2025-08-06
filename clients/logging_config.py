@@ -2,11 +2,11 @@
 Logging configuration for Euler system.
 """
 
-import os
 import logging
+import os
+from datetime import datetime
 from pathlib import Path
 from typing import Optional
-from datetime import datetime
 
 
 def setup_logging() -> logging.Logger:

@@ -2,14 +2,14 @@
 Client for fetching market data.
 """
 
+from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Dict, List
-from dataclasses import dataclass, field
 
-from adapters.yfinance_adapter import YFinanceAdapter
 from adapters.buffet_indicator_adapter import BuffettIndicatorAdapter
-from registries.indicator_registry import indicator_to_adapter_registry, indicators
+from adapters.yfinance_adapter import YFinanceAdapter
 from clients.logging_config import fetch_logger as logger
+from registries.indicator_registry import indicator_to_adapter_registry, indicators
 
 
 @dataclass

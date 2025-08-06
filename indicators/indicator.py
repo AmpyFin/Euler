@@ -4,6 +4,7 @@ Base indicator interface that all indicators must implement.
 
 from abc import ABC, abstractmethod
 from typing import Optional
+
 from adapters.adapter import Adapter
 
 

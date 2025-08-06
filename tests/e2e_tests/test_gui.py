@@ -4,12 +4,13 @@ Minimal GUI test to verify Tkinter functionality.
 
 import tkinter as tk
 from tkinter import ttk
+
 import matplotlib
 
 matplotlib.use("TkAgg")
+import numpy as np
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
-import numpy as np
 
 
 def main():

@@ -2,15 +2,16 @@
 Unit tests for indicator classes.
 """
 
-import pytest
-from unittest.mock import Mock, patch, MagicMock
 from datetime import datetime
+from unittest.mock import MagicMock, Mock, patch
+
+import pytest
 
 from indicators.indicator import Indicator
-from indicators.live_indicators.vix_indicator import VIXIndicator
-from indicators.live_indicators.skew_indicator import SKEWIndicator
-from indicators.live_indicators.cpc_indicator import CPCIndicator
 from indicators.live_indicators.buffet_indicator import BuffettIndicator
+from indicators.live_indicators.cpc_indicator import CPCIndicator
+from indicators.live_indicators.skew_indicator import SKEWIndicator
+from indicators.live_indicators.vix_indicator import VIXIndicator
 
 
 class TestIndicator:
@@ -158,7 +159,7 @@ class TestIndicatorRegistry:
 
     def test_indicator_registry_imports(self):
         """Test that all indicators can be imported from registry."""
-        from registries.indicator_registry import indicators, indicator_to_adapter_registry
+        from registries.indicator_registry import indicator_to_adapter_registry, indicators
 
         # Test that indicators list is not empty
         assert len(indicators) > 0

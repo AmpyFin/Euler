@@ -3,42 +3,44 @@ System client that orchestrates market analysis.
 """
 
 import os
+import socket
 import sys
-from pathlib import Path
+import threading
 import time
 from datetime import datetime
-import socket
-import threading
-from typing import Optional, Dict, List
+from pathlib import Path
+from typing import Dict, List, Optional
+
+import matplotlib
+from PyQt5.QtCore import Qt, QThread, QTimer, pyqtSignal
 from PyQt5.QtWidgets import (
     QApplication,
-    QMainWindow,
-    QWidget,
-    QVBoxLayout,
+    QFrame,
     QHBoxLayout,
     QLabel,
-    QTabWidget,
-    QFrame,
-    QTextEdit,
+    QMainWindow,
     QScrollArea,
+    QTabWidget,
+    QTextEdit,
+    QVBoxLayout,
+    QWidget,
 )
-from PyQt5.QtCore import Qt, QTimer, QThread, pyqtSignal
-import matplotlib
 
 matplotlib.use("Qt5Agg")
+import numpy as np
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
 from matplotlib.figure import Figure
-import numpy as np
 
 # Add project root to Python path
 project_root = str(Path(__file__).parent.parent)
 sys.path.insert(0, project_root)
 
+from random import randint
+
 from clients.fetch_client import FetchClient, MarketData
-from clients.processing_client import ProcessingClient, ProcessedData
 from clients.inference_client import InferenceClient, MarketAnalysis
 from clients.logging_config import system_logger as logger
-from random import randint
+from clients.processing_client import ProcessedData, ProcessingClient
 
 
 class AnalysisWorker(QThread):

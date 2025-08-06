@@ -2,12 +2,13 @@
 Unit tests for the SystemClient class.
 """
 
-import pytest
-from unittest.mock import Mock, patch, MagicMock
-from datetime import datetime
 import socket
+from datetime import datetime
+from unittest.mock import MagicMock, Mock, patch
 
-from clients.system_client import SystemClient, AnalysisWorker, SystemGUI
+import pytest
+
+from clients.system_client import AnalysisWorker, SystemClient, SystemGUI
 
 
 class TestAnalysisWorker:

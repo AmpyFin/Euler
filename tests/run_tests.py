@@ -2,10 +2,10 @@
 """
 Test runner for the Euler market analysis system.
 """
-import sys
+import argparse
 import os
 import subprocess
-import argparse
+import sys
 from pathlib import Path
 
 # Add project root to Python path

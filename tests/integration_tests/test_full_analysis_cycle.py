@@ -2,19 +2,20 @@
 Integration tests for the full market analysis cycle.
 """
 
-import pytest
-from unittest.mock import Mock, patch, MagicMock
-from datetime import datetime
 import sys
+from datetime import datetime
 from pathlib import Path
+from unittest.mock import MagicMock, Mock, patch
+
+import pytest
 
 # Add project root to Python path
 project_root = str(Path(__file__).parent.parent.parent)
 sys.path.insert(0, project_root)
 
 from clients.fetch_client import FetchClient
-from clients.processing_client import ProcessingClient
 from clients.inference_client import InferenceClient
+from clients.processing_client import ProcessingClient
 from clients.system_client import SystemClient
 
 
@@ -274,8 +275,8 @@ class TestDataFlowIntegration:
 
     def test_processed_data_to_analysis_flow(self):
         """Test data flow from ProcessedData to MarketAnalysis."""
-        from clients.processing_client import ProcessedData
         from clients.inference_client import InferenceClient
+        from clients.processing_client import ProcessedData
 
         # Create processed data
         processed_data_dict = {

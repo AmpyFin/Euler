@@ -2,15 +2,16 @@
 Unit tests for client classes.
 """
 
-import pytest
-from unittest.mock import Mock, patch, MagicMock
 from datetime import datetime
 from typing import Dict
+from unittest.mock import MagicMock, Mock, patch
+
+import pytest
 
 from clients.client import Client
 from clients.fetch_client import FetchClient, MarketData
-from clients.processing_client import ProcessingClient, ProcessedData
 from clients.inference_client import InferenceClient, MarketAnalysis, MarketRegime
+from clients.processing_client import ProcessedData, ProcessingClient
 
 
 class TestClient:

@@ -2,14 +2,15 @@
 Unit tests for adapter classes.
 """
 
-import pytest
-from unittest.mock import Mock, patch, MagicMock
 from datetime import datetime
 from typing import Dict
+from unittest.mock import MagicMock, Mock, patch
+
+import pytest
 
 from adapters.adapter import Adapter
-from adapters.yfinance_adapter import YFinanceAdapter
 from adapters.buffet_indicator_adapter import BuffettIndicatorAdapter
+from adapters.yfinance_adapter import YFinanceAdapter
 
 
 class TestAdapter:

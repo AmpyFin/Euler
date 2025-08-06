@@ -2,29 +2,30 @@
 Client for market data inference and analysis.
 """
 
+import logging
 import os
+import pickle
+import queue
 import sys
-from pathlib import Path
+import threading
 import time
-from typing import Dict, List, Tuple, Optional
 from dataclasses import dataclass
 from datetime import datetime
-import threading
-import queue
 from enum import Enum
-import logging
+from pathlib import Path
+from typing import Dict, List, Optional, Tuple
+
+import joblib
 import numpy as np
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.preprocessing import StandardScaler
-import joblib
-import pickle
 
 # Add project root to Python path
 project_root = str(Path(__file__).parent.parent)
 sys.path.insert(0, project_root)
 
-from clients.processing_client import ProcessedData
 from clients.logging_config import inference_logger as logger
+from clients.processing_client import ProcessedData
 from registries.indicator_registry import indicator_to_weights
 
 logger = logging.getLogger(__name__)

@@ -94,7 +94,7 @@ jobs:
     
     - name: Run isort (check only)
       run: |
-        isort --check-only clients/ adapters/ indicators/ registries/ tests/
+        isort --check-only --profile black --line-length 127 clients/ adapters/ indicators/ registries/ tests/
     
     - name: Run mypy
       run: |

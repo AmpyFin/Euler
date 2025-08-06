@@ -2,12 +2,13 @@
 Integration tests for network broadcast functionality.
 """
 
-import pytest
 import socket
 import threading
 import time
-from unittest.mock import Mock, patch, MagicMock
 from datetime import datetime
+from unittest.mock import MagicMock, Mock, patch
+
+import pytest
 
 from clients.system_client import SystemClient
 

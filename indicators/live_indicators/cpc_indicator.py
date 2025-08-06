@@ -4,8 +4,10 @@ Calculates put-call ratio from SPY options volume for nearest expirations.
 """
 
 from typing import Dict, List, Tuple
-import yfinance as yf
+
 import pandas as pd
+import yfinance as yf
+
 from ..indicator import Indicator
 
 

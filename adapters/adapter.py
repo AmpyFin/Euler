@@ -3,8 +3,8 @@ Base adapter interface responsible for standardizing API requests and data forma
 """
 
 from abc import ABC, abstractmethod
-from typing import Optional, Tuple, Dict
 from datetime import datetime
+from typing import Dict, Optional, Tuple
 
 
 class Adapter(ABC):

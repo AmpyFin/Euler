@@ -2,9 +2,10 @@
 YFinance adapter for fetching real-time market data.
 """
 
-import yfinance as yf
 from datetime import datetime
-from typing import Optional, Tuple, Dict
+from typing import Dict, Optional, Tuple
+
+import yfinance as yf
 
 from .adapter import Adapter
 

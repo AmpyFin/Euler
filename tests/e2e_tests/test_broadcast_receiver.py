@@ -3,10 +3,10 @@ Test script to receive broadcast packets from Euler system.
 """
 
 import os
-import sys
-from pathlib import Path
 import socket
+import sys
 from datetime import datetime
+from pathlib import Path
 
 # Add project root to Python path
 project_root = str(Path(__file__).parent.parent.parent)

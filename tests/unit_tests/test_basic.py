@@ -2,9 +2,10 @@
 Basic tests to verify the test setup is working correctly.
 """
 
-import pytest
 import sys
 from pathlib import Path
+
+import pytest
 
 # Add project root to Python path
 project_root = str(Path(__file__).parent.parent.parent)
@@ -17,10 +18,10 @@ class TestBasicSetup:
     def test_imports_work(self):
         """Test that basic imports work."""
         try:
-            from clients.fetch_client import FetchClient
-            from clients.processing_client import ProcessingClient
-            from clients.inference_client import InferenceClient
             from adapters.adapter import Adapter
+            from clients.fetch_client import FetchClient
+            from clients.inference_client import InferenceClient
+            from clients.processing_client import ProcessingClient
             from indicators.indicator import Indicator
 
             assert True

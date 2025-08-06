@@ -1,6 +1,7 @@
 """
 Client for processing market data.
 """
+
 import os
 import sys
 from pathlib import Path
@@ -18,6 +19,7 @@ from clients.logging_config import process_logger as logger
 
 logger = logging.getLogger(__name__)
 
+
 class ProcessedData:
     def __init__(self, indicator_name: str, raw_value: float, score: float, timestamp: datetime = None):
         self.indicator_name = indicator_name
@@ -25,15 +27,16 @@ class ProcessedData:
         self.score = score
         self.timestamp = timestamp or datetime.now()
 
+
 class ProcessingClient:
     """Client for processing market data."""
-    
+
     def __init__(self):
         """Initialize the processing client."""
         logger.info("Initializing ProcessingClient")
         self.data_buffer: Dict[str, MarketData] = {}
         logger.info("ProcessingClient initialized successfully")
-        
+
     def calculate_score(self, indicator_name: str, value: float) -> float:
         """Calculate risk score (0-100) for an indicator value."""
         try:

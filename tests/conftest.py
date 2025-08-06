@@ -1,6 +1,7 @@
 """
 Pytest configuration and fixtures for Euler market analysis tests.
 """
+
 import pytest
 import sys
 from pathlib import Path
@@ -25,10 +26,7 @@ def mock_adapter():
     adapter = Mock(spec=Adapter)
     adapter.fetch_last_quote.return_value = 25.5
     adapter.fetch_last_quote_with_date.return_value = (25.5, datetime.now())
-    adapter.fetch_historical_data.return_value = {
-        datetime.now(): 25.5,
-        datetime.now(): 26.0
-    }
+    adapter.fetch_historical_data.return_value = {datetime.now(): 25.5, datetime.now(): 26.0}
     return adapter
 
 
@@ -45,22 +43,13 @@ def mock_indicator(mock_adapter):
 @pytest.fixture
 def sample_market_data():
     """Create sample market data for testing."""
-    return MarketData(
-        indicator_name="Test VIX",
-        value=25.5,
-        timestamp=datetime.now()
-    )
+    return MarketData(indicator_name="Test VIX", value=25.5, timestamp=datetime.now())
 
 
 @pytest.fixture
 def sample_processed_data():
     """Create sample processed data for testing."""
-    return ProcessedData(
-        indicator_name="Test VIX",
-        raw_value=25.5,
-        score=65.0,
-        timestamp=datetime.now()
-    )
+    return ProcessedData(indicator_name="Test VIX", raw_value=25.5, score=65.0, timestamp=datetime.now())
 
 
 @pytest.fixture
@@ -70,20 +59,20 @@ def sample_market_analysis():
     regime = Mock(spec=MarketRegime)
     regime.label = "Elevated Risk"
     regime.description = "Market showing elevated risk levels"
-    
+
     # Create sample data
     data = {
         "VIX": ProcessedData("VIX", 25.5, 65.0),
         "SKEW": ProcessedData("SKEW", 120.0, 55.0),
-        "Put/Call": ProcessedData("Put/Call", 0.8, 70.0)
+        "Put/Call": ProcessedData("Put/Call", 0.8, 70.0),
     }
-    
+
     analysis = Mock(spec=MarketAnalysis)
     analysis.score = 63.3
     analysis.regime = regime
     analysis.data = data
     analysis.timestamp = datetime.now()
-    
+
     return analysis
 
 
@@ -120,7 +109,7 @@ def sample_indicator_data():
         "VIX": {"raw_value": 25.5, "score": 65.0},
         "SKEW": {"raw_value": 120.0, "score": 55.0},
         "Put/Call": {"raw_value": 0.8, "score": 70.0},
-        "Buffett": {"raw_value": 150.0, "score": 75.0}
+        "Buffett": {"raw_value": 150.0, "score": 75.0},
     }
 
 
@@ -140,7 +129,7 @@ def test_config():
         "gui_mode": False,
         "run_continuously": False,
         "broadcast_network": "127.0.0.1",
-        "broadcast_port": 5001
+        "broadcast_port": 5001,
     }
 
 
@@ -163,26 +152,26 @@ def setup_test_environment(monkeypatch):
     mock_qt.QTimer = Mock()
     mock_qt.QThread = Mock()
     mock_qt.pyqtSignal = Mock()
-    
+
     # Use setitem for sys.modules instead of setattr
     monkeypatch.setitem(sys.modules, "PyQt5", mock_qt)
     monkeypatch.setitem(sys.modules, "PyQt5.QtWidgets", mock_qt)
     monkeypatch.setitem(sys.modules, "PyQt5.QtCore", mock_qt)
-    
+
     # Mock matplotlib
     mock_matplotlib = Mock()
     mock_matplotlib.use = Mock()
     mock_matplotlib.backends = Mock()
     mock_matplotlib.figure = Mock()
     mock_matplotlib.pyplot = Mock()
-    
+
     monkeypatch.setitem(sys.modules, "matplotlib", mock_matplotlib)
     monkeypatch.setitem(sys.modules, "matplotlib.backends.backend_qt5agg", mock_matplotlib)
     monkeypatch.setitem(sys.modules, "matplotlib.figure", mock_matplotlib)
-    
+
     # Mock numpy
     mock_numpy = Mock()
     mock_numpy.array = Mock()
     mock_numpy.mean = Mock()
     mock_numpy.std = Mock()
-    monkeypatch.setitem(sys.modules, "numpy", mock_numpy) 
+    monkeypatch.setitem(sys.modules, "numpy", mock_numpy)

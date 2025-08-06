@@ -1,6 +1,7 @@
 """
 E2E test to analyze market signals from all indicators.
 """
+
 import os
 import sys
 from pathlib import Path
@@ -30,12 +31,14 @@ from indicators.live_indicators.six_month_term_slope_indicator import SixMonthTe
 from adapters.yfinance_adapter import YFinanceAdapter
 from adapters.buffet_indicator_adapter import BuffettIndicatorAdapter
 
+
 class MarketRegime(Enum):
-    VERY_LOW = "🟩 VERY LOW RISK"      # 0-20: Dark Green
-    LOW = "💚 LOW RISK"                # 21-40: Light Green
-    MODERATE = "🟣 MODERATE RISK"      # 41-60: Purple
-    HIGH = "🟥 HIGH RISK"              # 61-80: Light Red
-    SEVERE = "⛔️ SEVERE RISK"          # 81-100: Deep Red
+    VERY_LOW = "🟩 VERY LOW RISK"  # 0-20: Dark Green
+    LOW = "💚 LOW RISK"  # 21-40: Light Green
+    MODERATE = "🟣 MODERATE RISK"  # 41-60: Purple
+    HIGH = "🟥 HIGH RISK"  # 61-80: Light Red
+    SEVERE = "⛔️ SEVERE RISK"  # 81-100: Deep Red
+
 
 @dataclass
 class SignalAnalysis:
@@ -45,6 +48,7 @@ class SignalAnalysis:
     regime: MarketRegime
     interpretation: str
     error_message: str = ""
+
 
 def get_regime_from_score(score: float) -> MarketRegime:
     """Convert 0-100 score to market regime."""
@@ -58,10 +62,11 @@ def get_regime_from_score(score: float) -> MarketRegime:
         return MarketRegime.HIGH
     return MarketRegime.SEVERE
 
+
 def analyze_vix(value: float) -> Tuple[float, MarketRegime]:
     """
     Analyze VIX level and return 0-100 score.
-    
+
     VIX characteristics:
     - Mean reversion tendency around 15-20
     - Log-normal distribution
@@ -80,13 +85,14 @@ def analyze_vix(value: float) -> Tuple[float, MarketRegime]:
         score = 75 + 15 * (value - 30) / 10
     else:  # Crisis
         score = min(100, 90 + 10 * (value - 40) / 40)
-    
+
     return score, get_regime_from_score(score)
+
 
 def analyze_skew(value: float) -> Tuple[float, MarketRegime]:
     """
     Analyze SKEW level and return 0-100 score.
-    
+
     SKEW characteristics:
     - Measures tail risk pricing
     - Base level ~100 (log-normal distribution)
@@ -106,13 +112,14 @@ def analyze_skew(value: float) -> Tuple[float, MarketRegime]:
         score = 75 + 15 * (value - 130) / 10
     else:  # Extreme
         score = min(100, 90 + 10 * (value - 140) / 10)
-    
+
     return score, get_regime_from_score(score)
+
 
 def analyze_pc_ratio(value: float) -> Tuple[float, MarketRegime]:
     """
     Analyze Put/Call ratio and return 0-100 score.
-    
+
     P/C Ratio characteristics:
     - Mean reversion around 0.7
     - Contrarian indicator at extremes
@@ -132,13 +139,14 @@ def analyze_pc_ratio(value: float) -> Tuple[float, MarketRegime]:
         score = 75 + 15 * (value - 0.9) / 0.2
     else:  # Extreme high
         score = min(100, 90 + 10 * (value - 1.1) / 0.2)
-    
+
     return score, get_regime_from_score(score)
+
 
 def analyze_term_structure(value: float) -> Tuple[float, MarketRegime]:
     """
     Analyze term structure ratios and return 0-100 score.
-    
+
     Term Structure characteristics:
     - Normal state is contango (ratio < 1)
     - Backwardation (ratio > 1) is significant
@@ -157,13 +165,14 @@ def analyze_term_structure(value: float) -> Tuple[float, MarketRegime]:
         score = 85 + 10 * (value - 1.05) / 0.15
     else:  # Extreme backwardation
         score = min(100, 95 + 5 * (value - 1.2) / 0.2)
-    
+
     return score, get_regime_from_score(score)
+
 
 def analyze_buffett(value: float) -> Tuple[float, MarketRegime]:
     """
     Analyze Buffett Indicator and return 0-100 score.
-    
+
     Buffett Indicator characteristics:
     - Historical mean ~80-90
     - Considers structural changes in economy
@@ -183,8 +192,9 @@ def analyze_buffett(value: float) -> Tuple[float, MarketRegime]:
         score = 85 + 10 * (value - 150) / 30
     else:  # Extreme
         score = min(100, 95 + 5 * (value - 180) / 20)
-    
+
     return score, get_regime_from_score(score)
+
 
 def get_interpretation(indicator: str, value: float, score: float, regime: MarketRegime) -> str:
     """Get sophisticated interpretation of the signal based on value and score."""
@@ -198,7 +208,7 @@ def get_interpretation(indicator: str, value: float, score: float, regime: Marke
         elif score <= 80:
             return "Elevated near-term volatility indicating increased hedging demand"
         return "Extreme near-term volatility suggesting acute market stress"
-        
+
     elif indicator == "^VIX":
         if score <= 20:
             return "VIX at unsustainably low levels - potential complacency risk"
@@ -209,7 +219,7 @@ def get_interpretation(indicator: str, value: float, score: float, regime: Marke
         elif score <= 80:
             return "Elevated VIX showing significant uncertainty and hedging activity"
         return "Crisis-level VIX indicating extreme market fear and potential opportunities"
-        
+
     elif indicator == "^VIX3M":
         if score <= 20:
             return "Unusually subdued medium-term volatility expectations - possible complacency"
@@ -220,7 +230,7 @@ def get_interpretation(indicator: str, value: float, score: float, regime: Marke
         elif score <= 80:
             return "Elevated medium-term volatility suggesting persistent uncertainty"
         return "Extreme medium-term volatility pricing indicating structural market stress"
-        
+
     elif indicator == "^VIX6M":
         if score <= 20:
             return "Very low long-term volatility suggesting strong structural stability"
@@ -231,7 +241,7 @@ def get_interpretation(indicator: str, value: float, score: float, regime: Marke
         elif score <= 80:
             return "Elevated long-term volatility indicating sustained uncertainty ahead"
         return "Extreme long-term volatility suggesting major structural concerns"
-        
+
     elif indicator == "^SKEW":
         if score <= 20:
             return "Unusually low tail risk pricing - potential hidden risks"
@@ -242,7 +252,7 @@ def get_interpretation(indicator: str, value: float, score: float, regime: Marke
         elif score <= 80:
             return "Elevated tail risk hedging suggesting increased crash concerns"
         return "Extreme tail risk pricing indicating severe downside protection buying"
-        
+
     elif indicator == "Put/Call Ratio":
         if score <= 20:
             return "Extremely low put demand - contrarian risk from potential complacency"
@@ -253,7 +263,7 @@ def get_interpretation(indicator: str, value: float, score: float, regime: Marke
         elif score <= 80:
             return "Elevated put buying indicating defensive positioning"
         return "Extreme put/call ratio suggesting potential capitulation"
-        
+
     elif indicator == "Near-term Stress Ratio":
         if score <= 20:
             return "Very low near-term/spot volatility spread indicating calm conditions"
@@ -264,7 +274,7 @@ def get_interpretation(indicator: str, value: float, score: float, regime: Marke
         elif score <= 80:
             return "Elevated near-term risk premium suggesting approaching stress"
         return "Extreme near-term stress premium indicating imminent concerns"
-        
+
     elif indicator == "3M Term Slope":
         if score <= 20:
             return "Deep contango indicating very strong risk appetite - possible complacency"
@@ -275,7 +285,7 @@ def get_interpretation(indicator: str, value: float, score: float, regime: Marke
         elif score <= 80:
             return "Flattening/inverted term structure suggesting increasing stress"
         return "Severe backwardation indicating significant market dislocation"
-        
+
     elif indicator == "6M Term Slope":
         if score <= 20:
             return "Strong long-term contango showing confidence in market stability"
@@ -286,7 +296,7 @@ def get_interpretation(indicator: str, value: float, score: float, regime: Marke
         elif score <= 80:
             return "Concerning long-term volatility structure suggesting sustained stress"
         return "Severe long-term backwardation indicating major market dislocation"
-        
+
     elif indicator == "Buffett Indicator":
         if score <= 20:
             return "Market cap significantly below historical GDP relationship"
@@ -297,15 +307,16 @@ def get_interpretation(indicator: str, value: float, score: float, regime: Marke
         elif score <= 80:
             return "Elevated market cap/GDP ratio suggesting extended valuations"
         return "Extreme market cap/GDP ratio indicating significant overvaluation"
-        
+
     return "No interpretation available"
+
 
 def analyze_indicator(indicator_instance) -> SignalAnalysis:
     """Analyze a single indicator."""
     try:
         name = indicator_instance.get_name()
         value = indicator_instance.fetch_last_quote()
-        
+
         # Determine regime based on indicator type
         if name in ["^VIX", "^VIX9D", "^VIX3M", "^VIX6M"]:
             score, regime = analyze_vix(value)
@@ -318,47 +329,44 @@ def analyze_indicator(indicator_instance) -> SignalAnalysis:
         elif "Buffett" in name:
             score, regime = analyze_buffett(value)
         else:
-            regime = MarketRegime.MODERATE # Default to neutral if not handled
-            
+            regime = MarketRegime.MODERATE  # Default to neutral if not handled
+
         interpretation = get_interpretation(name, value, score, regime)
-        
+
         return SignalAnalysis(
-            indicator_name=name,
-            current_value=value,
-            score=score,
-            regime=regime,
-            interpretation=interpretation
+            indicator_name=name, current_value=value, score=score, regime=regime, interpretation=interpretation
         )
-        
+
     except Exception as e:
         return SignalAnalysis(
-            indicator_name=name if 'name' in locals() else "Unknown",
+            indicator_name=name if "name" in locals() else "Unknown",
             current_value=0.0,
             score=0.0,
-            regime=MarketRegime.MODERATE, # Default to neutral on error
+            regime=MarketRegime.MODERATE,  # Default to neutral on error
             interpretation="Error fetching data",
-            error_message=str(e)
+            error_message=str(e),
         )
+
 
 def print_signal_report(results: List[SignalAnalysis]):
     """Print formatted signal analysis report."""
-    print("\n" + "="*120)
+    print("\n" + "=" * 120)
     print(f"EULER SYSTEM MARKET SIGNAL ANALYSIS - {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-    print("="*120)
-    
+    print("=" * 120)
+
     # Calculate composite score and contributions
     composite_score, contributions, risk_factors, regime = calculate_composite_risk_score(results)
-    
+
     # Count regimes
     regime_counts = {regime: 0 for regime in MarketRegime}
     for result in results:
         regime_counts[result.regime] += 1
-    
+
     # Print overall market state
     print("\nOVERALL MARKET STATE:")
-    print("-"*120)
+    print("-" * 120)
     print(f"Composite Market Risk Score: {composite_score:.1f}/100")
-    
+
     print("\nRisk Factor Analysis:")
     risk_factor_order = ["volatility", "tail_risk", "structural", "tactical", "sentiment"]
     for factor in risk_factor_order:
@@ -375,48 +383,51 @@ def print_signal_report(results: List[SignalAnalysis]):
             status = "LOW"
             symbol = "🟢"
         print(f"{symbol} {factor.replace('_', ' ').title():<15} {risk_factors[factor]:>6.1f}% ({status})")
-    
+
     print("\nKey Contributors to Risk Score:")
     sorted_contributions = sorted(contributions.items(), key=lambda x: x[1], reverse=True)
     for indicator, contribution in sorted_contributions[:3]:
         print(f"• {indicator:<25} {contribution:>6.1f}% contribution")
-    
+
     print("\nRisk Level Distribution:")
     for regime in MarketRegime:
         print(f"{regime.value}: {regime_counts[regime]} indicators")
-    
+
     # Print detailed analysis
     print("\nDETAILED SIGNAL ANALYSIS:")
-    print("-"*120)
+    print("-" * 120)
     print(f"{'Indicator':<25} {'Value':<10} {'Risk Score':<12} {'Weight':<8} {'Risk Level':<20} {'Interpretation':<45}")
-    print("-"*120)
-    
+    print("-" * 120)
+
     # Sort results by risk score for better visualization
     sorted_results = sorted(results, key=lambda x: x.score, reverse=True)
-    
+
     for result in sorted_results:
         if result.score > 0:  # Only show valid results
             value = f"{result.current_value:.2f}" if result.current_value != 0 else "N/A"
             score = f"{result.score:.1f}"
             weight = f"{get_indicator_weight(result.indicator_name, result.current_value, result.score, results):.2f}"
-            print(f"{result.indicator_name:<25} {value:<10} {score:<12} {weight:<8} {result.regime.value:<20} {result.interpretation:<45}")
+            print(
+                f"{result.indicator_name:<25} {value:<10} {score:<12} {weight:<8} {result.regime.value:<20} {result.interpretation:<45}"
+            )
         if result.error_message:
             print(f"  Error: {result.error_message}")
-    
-    print("\n" + "="*120)
-    
+
+    print("\n" + "=" * 120)
+
     # Print market summary
     print("\nMARKET SUMMARY:")
-    print("-"*120)
+    print("-" * 120)
     print(regime)
-    
-    print("="*120 + "\n")
+
+    print("=" * 120 + "\n")
+
 
 def get_indicator_weight(indicator: str, value: float, score: float, all_results: List[SignalAnalysis]) -> float:
     """
     Calculate dynamic weight for each indicator based on its characteristics, current value,
     and cross-indicator relationships.
-    
+
     Weight Adjustment Principles:
     1. Base weights reflect historical reliability and importance
     2. Dynamic adjustments based on current market regime
@@ -429,27 +440,25 @@ def get_indicator_weight(indicator: str, value: float, score: float, all_results
     """
     base_weights = {
         # Core volatility indicators (35% total)
-        "^VIX": 0.15,      # Most watched, highly reliable but can lag
-        "^VIX9D": 0.08,    # Leading indicator but noisier
-        "^VIX3M": 0.06,    # Medium-term expectations
-        "^VIX6M": 0.06,    # Long-term expectations
-        
+        "^VIX": 0.15,  # Most watched, highly reliable but can lag
+        "^VIX9D": 0.08,  # Leading indicator but noisier
+        "^VIX3M": 0.06,  # Medium-term expectations
+        "^VIX6M": 0.06,  # Long-term expectations
         # Structural indicators (35% total)
         "Buffett Indicator": 0.20,  # Strong long-term signal, increased importance
-        "^SKEW": 0.15,             # Critical tail risk information
-        
+        "^SKEW": 0.15,  # Critical tail risk information
         # Tactical indicators (30% total)
-        "Put/Call Ratio": 0.12,          # Strong tactical signal
+        "Put/Call Ratio": 0.12,  # Strong tactical signal
         "Near-term Stress Ratio": 0.08,  # Good leading indicator
-        "3M Term Slope": 0.05,           # Term structure information
-        "6M Term Slope": 0.05            # Longer-term structure
+        "3M Term Slope": 0.05,  # Term structure information
+        "6M Term Slope": 0.05,  # Longer-term structure
     }
-    
+
     weight = base_weights.get(indicator, 0.10)
-    
+
     # Get other indicator values for cross-relationships
     indicator_dict = {r.indicator_name: (r.current_value, r.score) for r in all_results}
-    
+
     # 1. Enhanced Term Structure Analysis
     if indicator.startswith("^VIX"):
         term_structure_stress = False
@@ -461,7 +470,7 @@ def get_indicator_weight(indicator: str, value: float, score: float, all_results
                 term_structure_stress = True
             elif ts_3m > 0.95 or ts_6m > 0.95:  # Near backwardation
                 term_structure_warning = True
-                
+
         if term_structure_stress:
             if indicator == "^VIX9D":
                 weight *= 1.5  # Short-term critical in stress
@@ -472,7 +481,7 @@ def get_indicator_weight(indicator: str, value: float, score: float, all_results
                 weight *= 1.3
             elif indicator in ["^VIX3M", "^VIX6M"]:
                 weight *= 1.2
-    
+
     # 2. Enhanced Volatility Regime Analysis
     vix_regime = "normal"
     if "^VIX" in indicator_dict:
@@ -485,7 +494,7 @@ def get_indicator_weight(indicator: str, value: float, score: float, all_results
             vix_regime = "very_low"
         elif vix_value < 15:
             vix_regime = "low"
-            
+
     # 3. Enhanced Cross-Signal Confirmation
     if indicator == "Put/Call Ratio":
         pc_value = value
@@ -499,10 +508,10 @@ def get_indicator_weight(indicator: str, value: float, score: float, all_results
             skew_value = indicator_dict["^SKEW"][0]
             if (pc_value > 1.0 and skew_value > 135) or (pc_value < 0.5 and skew_value < 110):
                 confirmations += 1
-        
+
         # Weight adjustment based on confirmations
-        weight *= (1 + (0.15 * confirmations))
-                
+        weight *= 1 + (0.15 * confirmations)
+
     # 4. Enhanced SKEW Analysis
     if indicator == "^SKEW":
         skew_value = value
@@ -511,7 +520,7 @@ def get_indicator_weight(indicator: str, value: float, score: float, all_results
             weight *= 1.6  # Critical in low vol
         elif vix_regime == "normal":
             weight *= 1.2  # Important in normal vol
-        
+
         # Multi-factor confirmation
         if "Put/Call Ratio" in indicator_dict and "^VIX" in indicator_dict:
             pc_value = indicator_dict["Put/Call Ratio"][0]
@@ -521,14 +530,14 @@ def get_indicator_weight(indicator: str, value: float, score: float, all_results
                     weight *= 1.3  # Confirmed tail risk
                 if vix_value < 15:  # Hidden risk in low vol
                     weight *= 1.4
-                
+
     # 5. Enhanced Buffett Indicator Analysis
     if indicator == "Buffett Indicator":
         buffett_value = value
         # More important in extreme regimes
         if vix_regime in ["extreme", "very_low"]:
             weight *= 1.3
-        
+
         # Structural confirmation
         if "3M Term Slope" in indicator_dict and "6M Term Slope" in indicator_dict:
             ts_3m_score = indicator_dict["3M Term Slope"][1]
@@ -537,7 +546,7 @@ def get_indicator_weight(indicator: str, value: float, score: float, all_results
                 weight *= 1.25  # Strong structural confirmation
             elif ts_3m_score > 60 and ts_6m_score > 60:
                 weight *= 1.15  # Moderate structural confirmation
-    
+
     # 6. Enhanced Stress Ratio Analysis
     if indicator == "Near-term Stress Ratio":
         stress_value = value
@@ -548,11 +557,11 @@ def get_indicator_weight(indicator: str, value: float, score: float, all_results
                 weight *= 1.35
             elif 0.85 <= ts_3m <= 1.15:  # Important transition zone
                 weight *= 1.25
-        
+
         # Volatility regime consideration
         if vix_regime in ["high", "extreme"]:
             weight *= 1.2
-    
+
     # 7. Enhanced Term Slope Analysis
     if indicator in ["3M Term Slope", "6M Term Slope"]:
         # More important in stress transitions
@@ -560,14 +569,14 @@ def get_indicator_weight(indicator: str, value: float, score: float, all_results
             weight *= 1.3
         elif vix_regime in ["very_low", "low"]:
             weight *= 1.2  # Important for forward-looking risk
-            
+
         # Cross-term confirmation
         other_term = "6M Term Slope" if indicator == "3M Term Slope" else "3M Term Slope"
         if other_term in indicator_dict:
             other_score = indicator_dict[other_term][1]
             if abs(score - other_score) > 20:  # Term structure dislocation
                 weight *= 1.25
-    
+
     # 8. Base Condition Adjustments with Momentum
     if score >= 85:
         weight *= 1.4  # Extreme readings more important
@@ -577,13 +586,14 @@ def get_indicator_weight(indicator: str, value: float, score: float, all_results
         weight *= 1.3  # Extreme low also important
     elif score <= 25:
         weight *= 1.2  # Very low readings
-        
+
     return weight
+
 
 def calculate_composite_risk_score(results: List[SignalAnalysis]) -> Tuple[float, Dict[str, float], Dict, str]:
     """
     Calculate sophisticated composite risk score with advanced market dynamics.
-    
+
     Features:
     1. Dynamic weighting based on cross-indicator relationships
     2. Regime-specific adjustments
@@ -597,14 +607,8 @@ def calculate_composite_risk_score(results: List[SignalAnalysis]) -> Tuple[float
     total_weight = 0
     weighted_score = 0
     contributions = {}
-    risk_factors = {
-        "volatility": 0,
-        "sentiment": 0,
-        "structural": 0,
-        "tactical": 0,
-        "tail_risk": 0
-    }
-    
+    risk_factors = {"volatility": 0, "sentiment": 0, "structural": 0, "tactical": 0, "tail_risk": 0}
+
     # First pass: Calculate base weighted score
     for result in results:
         if result.score > 0:
@@ -613,7 +617,7 @@ def calculate_composite_risk_score(results: List[SignalAnalysis]) -> Tuple[float
             weighted_score += weighted_contribution
             total_weight += weight
             contributions[result.indicator_name] = weighted_contribution
-            
+
             # Categorize risk factors
             if result.indicator_name.startswith("^VIX"):
                 risk_factors["volatility"] += weighted_contribution
@@ -625,25 +629,25 @@ def calculate_composite_risk_score(results: List[SignalAnalysis]) -> Tuple[float
                 risk_factors["tactical"] += weighted_contribution
             elif result.indicator_name in ["^SKEW"]:
                 risk_factors["tail_risk"] += weighted_contribution
-    
+
     # Normalize the score
     composite_score = weighted_score / total_weight if total_weight > 0 else 50
-    
+
     # Normalize contributions and risk factors
     for indicator in contributions:
         contributions[indicator] = (contributions[indicator] / weighted_score) * 100
-    
+
     total_risk = sum(risk_factors.values())
     if total_risk > 0:
         for factor in risk_factors:
             risk_factors[factor] = (risk_factors[factor] / total_risk) * 100
-    
+
     # Get key indicator scores
     vix_score = next((r.score for r in results if r.indicator_name == "^VIX"), 50)
     skew_score = next((r.score for r in results if r.indicator_name == "^SKEW"), 50)
     pc_score = next((r.score for r in results if r.indicator_name == "Put/Call Ratio"), 50)
     buffett_score = next((r.score for r in results if r.indicator_name == "Buffett Indicator"), 50)
-    
+
     # Generate sophisticated market regime interpretation
     if composite_score >= 80:
         regime = (
@@ -683,15 +687,16 @@ def calculate_composite_risk_score(results: List[SignalAnalysis]) -> Tuple[float
             f"• Watch Items: SKEW {skew_score:.1f}, Tail Risk {risk_factors['tail_risk']:.1f}%\n"
             "• Action: Opportunistic positioning appropriate, maintain tail risk hedges."
         )
-        
+
     return composite_score, contributions, risk_factors, regime
+
 
 def main():
     """Main test execution."""
     # Initialize adapters
     yfinance_adapter = YFinanceAdapter()
     buffett_adapter = BuffettIndicatorAdapter()
-    
+
     # Create indicator instances
     indicators = [
         VIX9DIndicator(yfinance_adapter),
@@ -703,18 +708,19 @@ def main():
         NearTermStressRatioIndicator(yfinance_adapter),
         ThreeMonthTermSlopeIndicator(yfinance_adapter),
         SixMonthTermSlopeIndicator(yfinance_adapter),
-        BuffettIndicator(buffett_adapter)
+        BuffettIndicator(buffett_adapter),
     ]
-    
+
     # Run analysis
     results = [analyze_indicator(indicator) for indicator in indicators]
-    
+
     # Print report
     print_signal_report(results)
-    
+
     # Return success if no errors
     has_errors = any(r.error_message for r in results)
     return 1 if has_errors else 0
 
+
 if __name__ == "__main__":
-    sys.exit(main()) 
+    sys.exit(main())

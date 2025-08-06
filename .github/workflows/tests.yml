@@ -23,7 +23,7 @@ jobs:
         python-version: ${{ matrix.python-version }}
     
     - name: Cache pip dependencies
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: ~/.cache/pip
         key: ${{ runner.os }}-pip-${{ matrix.python-version }}-${{ hashFiles('**/requirements.txt') }}
@@ -50,7 +50,7 @@ jobs:
         python tests/run_tests.py --coverage
     
     - name: Upload coverage to Codecov
-      uses: codecov/codecov-action@v3
+      uses: codecov/codecov-action@v4
       with:
         file: ./htmlcov/coverage.xml
         flags: unittests
@@ -58,7 +58,7 @@ jobs:
         fail_ci_if_error: false
     
     - name: Upload test results
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       if: always()
       with:
         name: test-results-${{ matrix.python-version }}
@@ -85,12 +85,12 @@ jobs:
     
     - name: Run flake8
       run: |
-        flake8 clients/ adapters/ indicators/ registries/ --count --select=E9,F63,F7,F82 --show-source --statistics
-        flake8 clients/ adapters/ indicators/ registries/ --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+        flake8 clients/ adapters/ indicators/ registries/ tests/ --count --select=E9,F63,F7,F82 --show-source --statistics
+        flake8 clients/ adapters/ indicators/ registries/ tests/ --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
     
     - name: Run black (check only)
       run: |
-        black --check clients/ adapters/ indicators/ registries/ tests/
+        black --check --line-length 127 clients/ adapters/ indicators/ registries/ tests/
     
     - name: Run isort (check only)
       run: |
@@ -125,7 +125,7 @@ jobs:
         safety check --json --output safety-report.json || true
     
     - name: Upload security reports
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       if: always()
       with:
         name: security-reports
@@ -155,7 +155,7 @@ jobs:
         python -m build
     
     - name: Upload build artifacts
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: build-artifacts
         path: dist/ 

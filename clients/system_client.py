@@ -47,13 +47,17 @@ try:
     import control
 except ImportError:
     # Default settings if control module is not available
-    control = type('Control', (), {
-        'broadcast_mode': False,
-        'GUI_mode': False,
-        'run_continuously': False,
-        'broadcast_network': "127.0.0.1",
-        'broadcast_port': 5000
-    })()
+    control = type(
+        "Control",
+        (),
+        {
+            "broadcast_mode": False,
+            "GUI_mode": False,
+            "run_continuously": False,
+            "broadcast_network": "127.0.0.1",
+            "broadcast_port": 5000,
+        },
+    )()
 
 
 class AnalysisWorker(QThread):

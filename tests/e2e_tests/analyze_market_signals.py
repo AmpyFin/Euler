@@ -19,7 +19,7 @@ from adapters.buffet_indicator_adapter import BuffettIndicatorAdapter
 
 # Import adapters
 from adapters.yfinance_adapter import YFinanceAdapter
-from indicators.live_indicators.buffet_indicator import BuffettIndicator
+from indicators.live_indicators.buffett_indicator import BuffettIndicator
 from indicators.live_indicators.cpc_indicator import CPCIndicator
 from indicators.live_indicators.near_term_stress_ratio_indicator import NearTermStressRatioIndicator
 from indicators.live_indicators.six_month_term_slope_indicator import SixMonthTermSlopeIndicator

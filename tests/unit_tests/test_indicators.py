@@ -8,7 +8,7 @@ from unittest.mock import MagicMock, Mock, patch
 import pytest
 
 from indicators.indicator import Indicator
-from indicators.live_indicators.buffet_indicator import BuffettIndicator
+from indicators.live_indicators.buffett_indicator import BuffettIndicator
 from indicators.live_indicators.cpc_indicator import CPCIndicator
 from indicators.live_indicators.skew_indicator import SKEWIndicator
 from indicators.live_indicators.vix_indicator import VIXIndicator

@@ -84,7 +84,7 @@ class TestAnalysisWorker:
 class TestSystemGUI:
     """Test the SystemGUI class."""
 
-    @pytest.mark.skipif(True, reason="GUI tests disabled in CI environment")
+    @pytest.mark.skip(reason="GUI tests disabled in CI environment")
     @pytest.fixture
     def mock_inference_client(self):
         """Create a mock inference client for testing."""
@@ -92,6 +92,7 @@ class TestSystemGUI:
         client.get_indicator_weight.return_value = 1.0
         return client
 
+    @pytest.mark.skip(reason="GUI tests disabled in CI environment")
     @pytest.fixture
     def gui(self, mock_inference_client):
         """Create a SystemGUI instance for testing."""
@@ -101,24 +102,28 @@ class TestSystemGUI:
             # Skip GUI tests if there are issues
             pytest.skip("GUI tests skipped due to environment issues")
 
+    @pytest.mark.skip(reason="GUI tests disabled in CI environment")
     def test_initialization(self, gui, mock_inference_client):
         """Test SystemGUI initialization."""
         assert gui.inference_client == mock_inference_client
         assert hasattr(gui, "history")
         assert hasattr(gui, "tabs")
 
+    @pytest.mark.skip(reason="GUI tests disabled in CI environment")
     def test_setup_overview_tab(self, gui):
         """Test overview tab setup."""
         # Verify overview tab was created
         assert gui.tabs.count() > 0
         assert gui.tabs.tabText(0) == "Overview"
 
+    @pytest.mark.skip(reason="GUI tests disabled in CI environment")
     def test_setup_details_tab(self, gui):
         """Test details tab setup."""
         # Verify details tab was created
         assert gui.tabs.count() > 1
         assert gui.tabs.tabText(1) == "Indicator Details"
 
+    @pytest.mark.skip(reason="GUI tests disabled in CI environment")
     def test_create_indicator_frame(self, gui):
         """Test indicator frame creation."""
         frame_data = gui._create_indicator_frame("Test Indicator")
@@ -130,6 +135,7 @@ class TestSystemGUI:
         assert hasattr(frame_data, "ax")
         assert hasattr(frame_data, "canvas")
 
+    @pytest.mark.skip(reason="GUI tests disabled in CI environment")
     def test_update_display(self, gui, sample_market_analysis):
         """Test display update with analysis results."""
         # Update display
@@ -144,6 +150,7 @@ class TestSystemGUI:
         expected_score = f"Market Risk Score: {sample_market_analysis.score:.2f}"
         assert gui.score_label.text() == expected_score
 
+    @pytest.mark.skip(reason="GUI tests disabled in CI environment")
     def test_update_display_exception_handling(self, gui):
         """Test exception handling in display update."""
         # Create invalid analysis that will cause exception

@@ -32,21 +32,22 @@ logger = logging.getLogger(__name__)
 
 
 class MarketRegime(Enum):
-    EXTREME_CALM = ("🟩 EXTREME CALM", 0, 10)
-    LOW_STRESS = ("🟩 LOW STRESS", 10, 20)
-    STABLE = ("🟩 STABLE", 20, 30)
-    MILD_UNCERTAINTY = ("🟨 MILD UNCERTAINTY", 30, 40)
-    ELEVATED_CAUTION = ("🟨 ELEVATED CAUTION", 40, 50)
-    HIGH_UNCERTAINTY = ("🟧 HIGH UNCERTAINTY", 50, 60)
-    STRESS_CONDITIONS = ("🟥 STRESS CONDITIONS", 60, 70)
-    HIGH_STRESS = ("🟥 HIGH STRESS", 70, 80)
-    SEVERE_STRESS = ("⬛ SEVERE STRESS", 80, 90)
-    CRISIS = ("⬛ CRISIS", 90, 100)
+    EXTREME_CALM = ("🟩 EXTREME CALM", 0, 10, "Market conditions are extremely calm with very low volatility")
+    LOW_STRESS = ("🟩 LOW STRESS", 10, 20, "Market shows minimal stress with low volatility")
+    STABLE = ("🟩 STABLE", 20, 30, "Market is stable with normal trading conditions")
+    MILD_UNCERTAINTY = ("🟨 MILD UNCERTAINTY", 30, 40, "Some uncertainty present but within normal range")
+    ELEVATED_CAUTION = ("🟨 ELEVATED CAUTION", 40, 50, "Increased caution warranted due to market conditions")
+    HIGH_UNCERTAINTY = ("🟧 HIGH UNCERTAINTY", 50, 60, "High levels of uncertainty and potential volatility")
+    STRESS_CONDITIONS = ("🟥 STRESS CONDITIONS", 60, 70, "Market under stress with elevated risk levels")
+    HIGH_STRESS = ("🟥 HIGH STRESS", 70, 80, "High stress conditions with significant volatility")
+    SEVERE_STRESS = ("⬛ SEVERE STRESS", 80, 90, "Severe market stress with extreme volatility")
+    CRISIS = ("⬛ CRISIS", 90, 100, "Crisis conditions with potential market disruption")
 
-    def __init__(self, label: str, lower: float, upper: float):
+    def __init__(self, label: str, lower: float, upper: float, description: str):
         self.label = label
         self.lower = lower
         self.upper = upper
+        self.description = description
 
 
 class MarketAnalysis:
@@ -170,8 +171,12 @@ class InferenceClient:
             weight = self.get_indicator_weight(name, data.raw_value, data.score, self.data_buffer)
             contribution = (data.score * weight / weighted_score) * 100 if weighted_score > 0 else 0
 
+            # Handle string values
+            raw_value_str = str(data.raw_value) if isinstance(data.raw_value, str) else f"{data.raw_value:8.2f}"
+            score_str = str(data.score) if isinstance(data.score, str) else f"{data.score:6.2f}"
+
             logger.info(
-                f"{name:25} | Raw: {data.raw_value:8.2f} | Score: {data.score:6.2f} | "
+                f"{name:25} | Raw: {raw_value_str} | Score: {score_str} | "
                 f"Weight: {weight:6.3f} | Contrib: {contribution:5.1f}%"
             )
 

@@ -3,11 +3,11 @@ Unit tests for the SystemClient class.
 """
 
 import socket
+import sys
 from datetime import datetime
 from unittest.mock import MagicMock, Mock, patch
 
 import pytest
-import sys
 
 from clients.system_client import AnalysisWorker, SystemClient, SystemGUI
 
@@ -200,7 +200,9 @@ class TestSystemClient:
     @patch("clients.system_client.ProcessingClient")
     @patch("clients.system_client.FetchClient")
     @patch("clients.system_client.QApplication")
-    def test_initialization_broadcast_mode(self, mock_qapp, mock_fetch, mock_processing, mock_inference, mock_socket, monkeypatch):
+    def test_initialization_broadcast_mode(
+        self, mock_qapp, mock_fetch, mock_processing, mock_inference, mock_socket, monkeypatch
+    ):
         """Test SystemClient initialization with broadcast mode."""
         # Mock control settings
         mock_control = MagicMock()

@@ -116,7 +116,7 @@ class TestBuffettIndicatorAdapter:
         """Test successful Buffett indicator calculation."""
         mock_response = Mock()
         mock_response.status_code = 200
-        mock_response.text = '<html><body><script>let autoRatio = 150.0;</script></body></html>'
+        mock_response.text = "<html><body><script>let autoRatio = 150.0;</script></body></html>"
         mock_get.return_value = mock_response
 
         result = adapter.fetch_last_quote()
@@ -128,7 +128,7 @@ class TestBuffettIndicatorAdapter:
         """Test Buffett indicator with missing data."""
         mock_response = Mock()
         mock_response.status_code = 200
-        mock_response.text = '<html><body></body></html>'
+        mock_response.text = "<html><body></body></html>"
         mock_get.return_value = mock_response
 
         with pytest.raises(ValueError, match="Could not find Buffett Indicator value in webpage"):

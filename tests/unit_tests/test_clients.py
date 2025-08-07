@@ -17,6 +17,7 @@ from indicators.indicator import Indicator
 
 class TestIndicator(Indicator):
     """Mock indicator class for testing."""
+
     def get_name(self) -> str:
         """Get the indicator's name."""
         return "test"
@@ -55,12 +56,12 @@ class TestFetchClient:
         """Test indicator initialization when no adapter is found."""
         mock_indicator_class = Mock()
         mock_indicator_class.__name__ = "TestIndicator"
-        
-        with patch('clients.fetch_client.indicators', [mock_indicator_class]):
+
+        with patch("clients.fetch_client.indicators", [mock_indicator_class]):
             mock_registry.get.return_value = None
-    
+
             indicators = fetch_client._initialize_indicators()
-    
+
             assert len(indicators) == 0
 
     @patch("clients.fetch_client.indicator_to_adapter_registry")
@@ -69,12 +70,12 @@ class TestFetchClient:
         mock_indicator_class = Mock()
         mock_indicator_class.__name__ = "TestIndicator"
         mock_indicator_class.side_effect = Exception("Initialization error")
-        
-        with patch('clients.fetch_client.indicators', [mock_indicator_class]):
+
+        with patch("clients.fetch_client.indicators", [mock_indicator_class]):
             mock_registry.get.return_value = Mock()
-    
+
             indicators = fetch_client._initialize_indicators()
-    
+
             assert len(indicators) == 0
 
 

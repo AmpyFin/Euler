@@ -13,40 +13,42 @@ import pytest
 from clients.system_client import SystemClient
 
 
+@pytest.fixture
+def mock_socket():
+    """Create a mock socket for testing."""
+    mock_sock = Mock()
+    mock_sock.sendto.return_value = 50  # bytes sent
+    return mock_sock
+
+
+@pytest.fixture
+def sample_analysis():
+    """Create a sample market analysis for testing."""
+    # Create mock regime
+    regime = Mock()
+    regime.label = "Elevated Risk"
+    regime.description = "Market showing elevated risk levels"
+
+    # Create sample data
+    from clients.processing_client import ProcessedData
+
+    data = {
+        "VIX": ProcessedData("VIX", 25.5, 65.0),
+        "SKEW": ProcessedData("SKEW", 120.0, 55.0),
+        "Put/Call": ProcessedData("Put/Call", 0.8, 70.0),
+    }
+
+    analysis = Mock()
+    analysis.score = 63.3
+    analysis.regime = regime
+    analysis.data = data
+    analysis.timestamp = datetime.now()
+
+    return analysis
+
+
 class TestNetworkBroadcast:
     """Test network broadcast functionality."""
-
-    @pytest.fixture
-    def mock_socket(self):
-        """Create a mock socket for testing."""
-        mock_sock = Mock()
-        mock_sock.sendto.return_value = 50  # bytes sent
-        return mock_sock
-
-    @pytest.fixture
-    def sample_analysis(self):
-        """Create a sample market analysis for testing."""
-        # Create mock regime
-        regime = Mock()
-        regime.label = "Elevated Risk"
-        regime.description = "Market showing elevated risk levels"
-
-        # Create sample data
-        from clients.processing_client import ProcessedData
-
-        data = {
-            "VIX": ProcessedData("VIX", 25.5, 65.0),
-            "SKEW": ProcessedData("SKEW", 120.0, 55.0),
-            "Put/Call": ProcessedData("Put/Call", 0.8, 70.0),
-        }
-
-        analysis = Mock()
-        analysis.score = 63.3
-        analysis.regime = regime
-        analysis.data = data
-        analysis.timestamp = datetime.now()
-
-        return analysis
 
     def test_broadcast_message_format(self, sample_analysis, mock_socket):
         """Test the format of broadcast messages."""
@@ -71,7 +73,9 @@ class TestNetworkBroadcast:
             parts = message.split("|")
             assert len(parts) == 3
             assert parts[0] == "EULER"
-            assert float(parts[1]) == pytest.approx(sample_analysis.score, abs=0.1)
+            # Compare float values with tolerance
+            score_diff = abs(float(parts[1]) - sample_analysis.score)
+            assert score_diff < 0.1, f"Score difference {score_diff} exceeds tolerance"
             assert parts[2] == sample_analysis.regime.label
 
             # Verify target address
@@ -117,23 +121,25 @@ class TestNetworkBroadcast:
     @patch("clients.system_client.socket")
     def test_socket_initialization(self, mock_socket_module, sample_analysis):
         """Test socket initialization in broadcast mode."""
-        # Mock control settings
-        with patch("clients.system_client.control") as mock_control:
-            mock_control.broadcast_mode = True
-            mock_control.GUI_mode = False
-            mock_control.run_continuously = False
-            mock_control.broadcast_network = "127.0.0.1"
-            mock_control.broadcast_port = 5001
+        # Create a mock control module
+        mock_control = Mock()
+        mock_control.broadcast_mode = True
+        mock_control.GUI_mode = False
+        mock_control.run_continuously = False
+        mock_control.broadcast_network = "127.0.0.1"
+        mock_control.broadcast_port = 5001
 
-            # Mock QApplication
-            with patch("clients.system_client.QApplication") as mock_qapp:
-                mock_qapp.instance.return_value = None
-                mock_qapp.return_value = Mock()
+        # Mock QApplication
+        with patch("clients.system_client.QApplication") as mock_qapp:
+            mock_qapp.instance.return_value = None
+            mock_qapp.return_value = Mock()
 
-                # Mock socket
-                mock_socket_instance = Mock()
-                mock_socket_module.socket.return_value = mock_socket_instance
+            # Mock socket
+            mock_socket_instance = Mock()
+            mock_socket_module.socket.return_value = mock_socket_instance
 
+            # Mock control module import
+            with patch.dict("sys.modules", {"control": mock_control}):
                 client = SystemClient()
 
                 # Verify socket was created

@@ -109,7 +109,7 @@ The test suite aims for:
 Tests are automatically run on:
 - Every pull request
 - Every push to main/develop branches
-- Multiple Python versions (3.8, 3.9, 3.10, 3.11)
+- Multiple Python versions (3.9, 3.10, 3.11)
 
 The CI pipeline includes:
 - Unit and integration tests

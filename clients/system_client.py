@@ -37,6 +37,7 @@ sys.path.insert(0, project_root)
 
 from random import randint
 
+from clients.client import Client
 from clients.fetch_client import FetchClient, MarketData
 from clients.inference_client import InferenceClient, MarketAnalysis
 from clients.logging_config import system_logger as logger
@@ -367,7 +368,7 @@ class SystemGUI(QMainWindow):
         self.close()
 
 
-class SystemClient:
+class SystemClient(Client):
     """Client for orchestrating the market analysis system."""
 
     def __init__(self):
@@ -409,6 +410,10 @@ class SystemClient:
         self.worker = None
 
         logger.info("SystemClient initialized successfully")
+
+    def get_name(self) -> str:
+        """Get the name of this client."""
+        return "SystemClient"
 
     def handle_analysis_results(self, analysis):
         """Handle analysis results from worker thread."""

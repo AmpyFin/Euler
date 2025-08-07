@@ -2,8 +2,9 @@
 """
 Setup script for Euler Market Analysis System.
 """
-from setuptools import setup, find_packages
 from pathlib import Path
+
+from setuptools import find_packages, setup
 
 # Read the README file
 this_directory = Path(__file__).parent
@@ -58,4 +59,4 @@ setup(
         "Source": "https://github.com/euler/market-analysis",
         "Documentation": "https://euler-market-analysis.readthedocs.io/",
     },
-) 
+)

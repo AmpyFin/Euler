@@ -24,6 +24,7 @@ from sklearn.preprocessing import StandardScaler
 project_root = str(Path(__file__).parent.parent)
 sys.path.insert(0, project_root)
 
+from clients.client import Client
 from clients.logging_config import inference_logger as logger
 from clients.processing_client import ProcessedData
 from registries.indicator_registry import indicator_to_weights
@@ -109,7 +110,7 @@ class LinearWeightedScorer:
             return 50.0
 
 
-class InferenceClient:
+class InferenceClient(Client):
     def __init__(self):
         self.data_buffer: Dict[str, ProcessedData] = {}
         self.input_queue: queue.Queue = queue.Queue()
@@ -119,6 +120,42 @@ class InferenceClient:
 
         # Initialize linear weighted scorer
         self.weighted_scorer = LinearWeightedScorer()
+
+    def get_name(self) -> str:
+        """Get the name of this client."""
+        return "InferenceClient"
+
+    def run(self):
+        """Run the inference client independently."""
+        logger.info("Running InferenceClient independently")
+        try:
+            # Create sample processed data for independent testing
+            from clients.processing_client import ProcessingClient
+
+            processor = ProcessingClient()
+            sample_data = [
+                ProcessedData("^VIX", 25.5, processor.calculate_score("^VIX", 25.5)),
+                ProcessedData("^SKEW", 125.0, processor.calculate_score("^SKEW", 125.0)),
+                ProcessedData("Put/Call Ratio", 0.8, processor.calculate_score("Put/Call Ratio", 0.8)),
+                ProcessedData("Buffett Indicator", 150.0, processor.calculate_score("Buffett Indicator", 150.0)),
+            ]
+
+            # Add sample data to buffer
+            for data in sample_data:
+                self.data_buffer[data.indicator_name] = data
+
+            # Analyze market state
+            analysis = self.analyze_market_state()
+            if analysis:
+                logger.info(f"InferenceClient completed. Market Score: {analysis.score:.2f}, Regime: {analysis.regime.label}")
+                return analysis
+            else:
+                logger.warning("InferenceClient: No analysis generated")
+                return None
+
+        except Exception as e:
+            logger.error(f"Error in InferenceClient run: {str(e)}")
+            return None
 
     def get_regime_from_score(self, score: float) -> MarketRegime:
         for regime in MarketRegime:

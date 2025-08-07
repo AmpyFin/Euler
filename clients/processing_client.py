@@ -14,6 +14,7 @@ from typing import Dict, List, Optional, Tuple
 project_root = str(Path(__file__).parent.parent)
 sys.path.insert(0, project_root)
 
+from clients.client import Client
 from clients.fetch_client import MarketData
 from clients.logging_config import process_logger as logger
 
@@ -28,7 +29,7 @@ class ProcessedData:
         self.timestamp = timestamp or datetime.now()
 
 
-class ProcessingClient:
+class ProcessingClient(Client):
     """Client for processing market data."""
 
     def __init__(self):
@@ -36,6 +37,38 @@ class ProcessingClient:
         logger.info("Initializing ProcessingClient")
         self.data_buffer: Dict[str, MarketData] = {}
         logger.info("ProcessingClient initialized successfully")
+
+    def get_name(self) -> str:
+        """Get the name of this client."""
+        return "ProcessingClient"
+
+    def run(self):
+        """Run the processing client independently."""
+        logger.info("Running ProcessingClient independently")
+        try:
+            # Create some sample data for independent testing
+            sample_data = [
+                MarketData("^VIX", 25.5, datetime.now()),
+                MarketData("^SKEW", 125.0, datetime.now()),
+                MarketData("Put/Call Ratio", 0.8, datetime.now()),
+                MarketData("Buffett Indicator", 150.0, datetime.now()),
+            ]
+
+            processed_results = []
+            for data in sample_data:
+                score = self.calculate_score(data.indicator_name, data.value)
+                processed_data = ProcessedData(
+                    indicator_name=data.indicator_name, raw_value=data.value, score=score, timestamp=data.timestamp
+                )
+                processed_results.append(processed_data)
+                logger.info(f"Processed {data.indicator_name}: {data.value} -> Score: {score:.2f}")
+
+            logger.info(f"ProcessingClient completed. Processed {len(processed_results)} indicators.")
+            return processed_results
+
+        except Exception as e:
+            logger.error(f"Error in ProcessingClient run: {str(e)}")
+            return []
 
     def calculate_score(self, indicator_name: str, value: float) -> float:
         """Calculate risk score (0-100) for an indicator value."""

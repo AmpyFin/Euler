@@ -9,15 +9,8 @@ from pathlib import Path
 this_directory = Path(__file__).parent
 long_description = (this_directory / "README.md").read_text()
 
-# Read requirements
-requirements = []
-with open("requirements.txt") as f:
-    requirements = [line.strip() for line in f if line.strip() and not line.startswith("#")]
-
-# Read test requirements
-test_requirements = []
-with open("requirements-test.txt") as f:
-    test_requirements = [line.strip() for line in f if line.strip() and not line.startswith("#")]
+# Dependencies are now managed in pyproject.toml
+# This setup.py is kept for compatibility but relies on pyproject.toml for dependencies
 
 setup(
     name="euler-market-analysis",
@@ -43,15 +36,11 @@ setup(
         "Topic :: Scientific/Engineering :: Information Analysis",
     ],
     python_requires=">=3.8",
-    install_requires=requirements,
+    # Dependencies are managed in pyproject.toml
+    install_requires=[],
     extras_require={
-        "test": test_requirements,
-        "dev": test_requirements + [
-            "pre-commit",
-            "tox",
-            "sphinx",
-            "sphinx-rtd-theme",
-        ],
+        "test": [],
+        "dev": [],
     },
     entry_points={
         "console_scripts": [

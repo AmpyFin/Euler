@@ -117,14 +117,16 @@ class TestCPCIndicator:
 
     def test_get_name(self, cpc_indicator):
         """Test CPC indicator name."""
-        assert cpc_indicator.get_name() == "SPY Put/Call Ratio"
+        assert cpc_indicator.get_name() == "Put/Call Ratio"
 
-    def test_fetch_last_quote_success(self, cpc_indicator, mock_adapter):
+    def test_fetch_last_quote_success(self, cpc_indicator):
         """Test successful CPC quote fetching."""
-        result = cpc_indicator.fetch_last_quote()
+        with patch("indicators.live_indicators.cpc_indicator.CPCIndicator._get_option_volumes") as mock_get_volumes:
+            mock_get_volumes.return_value = ([100], [120], ["2025-12-31"])
 
-        assert result == 0.8
-        mock_adapter.fetch_last_quote.assert_called_once_with("SPY")
+            result = cpc_indicator.fetch_last_quote()
+
+            assert result == 100 / 120
 
 
 class TestBuffettIndicator:

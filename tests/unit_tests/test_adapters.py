@@ -50,17 +50,20 @@ class TestYFinanceAdapter:
         mock_ticker.info = {}
         mock_yf.Ticker.return_value = mock_ticker
 
-        with pytest.raises(ValueError, match="No price data available"):
+        with pytest.raises(ValueError, match="Could not find latest quote for"):
             adapter.fetch_last_quote("^VIX")
 
     @patch("adapters.yfinance_adapter.yf")
     def test_fetch_last_quote_with_date_success(self, mock_yf, adapter):
         """Test successful quote fetching with date."""
         mock_ticker = Mock()
-        mock_ticker.info = {"regularMarketPrice": 25.5}
+        mock_df = MagicMock()
+        mock_df.empty = False
+        mock_df.iloc.__getitem__.return_value = {"Close": 25.5}
+        mock_ticker.history.return_value = mock_df
         mock_yf.Ticker.return_value = mock_ticker
 
-        price, date = adapter.fetch_last_quote_with_date("^VIX")
+        price, date = adapter.fetch_last_quote_with_date("^VIX", date=datetime.now())
 
         assert price == 25.5
         assert isinstance(date, datetime)
@@ -69,8 +72,19 @@ class TestYFinanceAdapter:
     def test_fetch_historical_data_success(self, mock_yf, adapter):
         """Test successful historical data fetching."""
         mock_ticker = Mock()
-        mock_data = Mock()
-        mock_data.to_dict.return_value = {"Close": {datetime.now(): 25.5, datetime.now(): 26.0}}
+
+        # Create a mock DataFrame for the history data
+        mock_data = MagicMock()
+        mock_data.empty = False
+
+        # Create a dictionary to simulate the data
+        hist_data = {datetime(2023, 1, 1): 25.5, datetime(2023, 1, 2): 26.0}
+
+        # Mock the 'Close' series and its items() method
+        mock_series = Mock()
+        mock_series.items.return_value = hist_data.items()
+        mock_data.__getitem__.return_value = mock_series
+
         mock_ticker.history.return_value = mock_data
         mock_yf.Ticker.return_value = mock_ticker
 
@@ -97,59 +111,30 @@ class TestBuffettIndicatorAdapter:
         """Create a BuffettIndicatorAdapter instance for testing."""
         return BuffettIndicatorAdapter()
 
-    @patch("adapters.buffet_indicator_adapter.yf")
-    def test_fetch_last_quote_success(self, mock_yf, adapter):
+    @patch("adapters.buffet_indicator_adapter.requests.get")
+    def test_fetch_last_quote_success(self, mock_get, adapter):
         """Test successful Buffett indicator calculation."""
-        # Mock GDP data
-        mock_gdp_ticker = Mock()
-        mock_gdp_ticker.info = {"regularMarketPrice": 25000.0}  # GDP in billions
-
-        # Mock market cap data
-        mock_market_ticker = Mock()
-        mock_market_ticker.info = {"marketCap": 50000000000000}  # 50 trillion
-
-        mock_yf.Ticker.side_effect = [mock_gdp_ticker, mock_market_ticker]
+        mock_response = Mock()
+        mock_response.status_code = 200
+        mock_response.text = '<html><body><script>let autoRatio = 150.0;</script></body></html>'
+        mock_get.return_value = mock_response
 
         result = adapter.fetch_last_quote()
 
-        # Expected: 50 trillion / 25 trillion = 200%
-        expected = 200.0
-        assert abs(result - expected) < 0.1
+        assert result == 150.0
 
-    @patch("adapters.buffet_indicator_adapter.yf")
-    def test_fetch_last_quote_missing_data(self, mock_yf, adapter):
+    @patch("adapters.buffet_indicator_adapter.requests.get")
+    def test_fetch_last_quote_missing_data(self, mock_get, adapter):
         """Test Buffett indicator with missing data."""
-        mock_ticker = Mock()
-        mock_ticker.info = {}
-        mock_yf.Ticker.return_value = mock_ticker
+        mock_response = Mock()
+        mock_response.status_code = 200
+        mock_response.text = '<html><body></body></html>'
+        mock_get.return_value = mock_response
 
-        with pytest.raises(ValueError, match="Missing required data"):
+        with pytest.raises(ValueError, match="Could not find Buffett Indicator value in webpage"):
             adapter.fetch_last_quote()
 
-    @patch("adapters.buffet_indicator_adapter.yf")
-    def test_fetch_historical_data(self, mock_yf, adapter):
+    def test_fetch_historical_data(self, adapter):
         """Test historical data fetching for Buffett indicator."""
-        mock_ticker = Mock()
-        mock_data = Mock()
-        mock_data.to_dict.return_value = {"Close": {datetime.now(): 200.0, datetime.now(): 180.0}}
-        mock_ticker.history.return_value = mock_data
-        mock_yf.Ticker.return_value = mock_ticker
-
-        result = adapter.fetch_historical_data(days=30)
-
-        assert isinstance(result, dict)
-        assert len(result) > 0
-
-    def test_calculate_buffett_ratio(self, adapter):
-        """Test the Buffett ratio calculation logic."""
-        # Test normal case
-        result = adapter._calculate_buffett_ratio(50000000000000, 25000.0)
-        assert result == 200.0
-
-        # Test edge case with zero GDP
-        with pytest.raises(ValueError, match="GDP cannot be zero"):
-            adapter._calculate_buffett_ratio(50000000000000, 0)
-
-        # Test edge case with negative values
-        with pytest.raises(ValueError, match="Values must be positive"):
-            adapter._calculate_buffett_ratio(-1000, 25000.0)
+        with pytest.raises(NotImplementedError):
+            adapter.fetch_historical_data(days=30)

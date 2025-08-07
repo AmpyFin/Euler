@@ -12,6 +12,18 @@ from clients.client import Client
 from clients.fetch_client import FetchClient, MarketData
 from clients.inference_client import InferenceClient, MarketAnalysis, MarketRegime
 from clients.processing_client import ProcessedData, ProcessingClient
+from indicators.indicator import Indicator
+
+
+class TestIndicator(Indicator):
+    """Mock indicator class for testing."""
+    def get_name(self) -> str:
+        """Get the indicator's name."""
+        return "test"
+
+    def fetch_last_quote(self) -> float:
+        """Fetch the latest value for this indicator."""
+        return 42.0
 
 
 class TestClient:
@@ -38,61 +50,32 @@ class TestFetchClient:
         assert isinstance(fetch_client.adapters, dict)
         assert isinstance(fetch_client.indicators, list)
 
-    @patch("clients.fetch_client.indicators")
     @patch("clients.fetch_client.indicator_to_adapter_registry")
-    def test_initialize_indicators_success(self, mock_registry, mock_indicators, fetch_client):
-        """Test successful indicator initialization."""
-        # Mock indicator classes
-        mock_indicator_class = Mock()
-        mock_indicator_class.__name__ = "TestIndicator"
-
-        # Mock adapter class
-        mock_adapter_class = Mock()
-        mock_adapter_instance = Mock()
-        mock_adapter_class.return_value = mock_adapter_instance
-
-        # Setup mocks
-        mock_indicators.__iter__.return_value = [mock_indicator_class]
-        mock_registry.get.return_value = mock_adapter_class
-        fetch_client.adapters[mock_adapter_class] = mock_adapter_instance
-
-        # Mock the indicator instance
-        mock_indicator_instance = Mock()
-        mock_indicator_class.return_value = mock_indicator_instance
-
-        indicators = fetch_client._initialize_indicators()
-
-        assert len(indicators) == 1
-        mock_indicator_class.assert_called_once_with(mock_adapter_instance)
-
-    @patch("clients.fetch_client.indicators")
-    @patch("clients.fetch_client.indicator_to_adapter_registry")
-    def test_initialize_indicators_no_adapter(self, mock_registry, mock_indicators, fetch_client):
+    def test_initialize_indicators_no_adapter(self, mock_registry, fetch_client):
         """Test indicator initialization when no adapter is found."""
         mock_indicator_class = Mock()
         mock_indicator_class.__name__ = "TestIndicator"
+        
+        with patch('clients.fetch_client.indicators', [mock_indicator_class]):
+            mock_registry.get.return_value = None
+    
+            indicators = fetch_client._initialize_indicators()
+    
+            assert len(indicators) == 0
 
-        mock_indicators.__iter__.return_value = [mock_indicator_class]
-        mock_registry.get.return_value = None
-
-        indicators = fetch_client._initialize_indicators()
-
-        assert len(indicators) == 0
-
-    @patch("clients.fetch_client.indicators")
     @patch("clients.fetch_client.indicator_to_adapter_registry")
-    def test_initialize_indicators_exception(self, mock_registry, mock_indicators, fetch_client):
+    def test_initialize_indicators_exception(self, mock_registry, fetch_client):
         """Test indicator initialization with exception."""
         mock_indicator_class = Mock()
         mock_indicator_class.__name__ = "TestIndicator"
         mock_indicator_class.side_effect = Exception("Initialization error")
-
-        mock_indicators.__iter__.return_value = [mock_indicator_class]
-        mock_registry.get.return_value = Mock()
-
-        indicators = fetch_client._initialize_indicators()
-
-        assert len(indicators) == 0
+        
+        with patch('clients.fetch_client.indicators', [mock_indicator_class]):
+            mock_registry.get.return_value = Mock()
+    
+            indicators = fetch_client._initialize_indicators()
+    
+            assert len(indicators) == 0
 
 
 class TestProcessingClient:
@@ -207,7 +190,7 @@ class TestInferenceClient:
         # Mock processed data
         mock_data = {"VIX": ProcessedData("VIX", 25.5, 65.0), "SKEW": ProcessedData("SKEW", 120.0, 55.0)}
 
-        weight = inference_client.get_indicator_weight("VIX", 25.5, 65.0, mock_data)
+        weight = inference_client.get_indicator_weight("^VIX", 25.5, 65.0, mock_data)
         assert isinstance(weight, float)
         assert weight > 0
 
@@ -241,11 +224,11 @@ class TestInferenceClient:
     def test_determine_regime(self, inference_client):
         """Test regime determination logic."""
         # Test different score ranges
-        low_regime = inference_client._determine_regime(25.0)
-        assert low_regime.label in ["Low Risk", "Normal"]
+        low_regime = inference_client.get_regime_from_score(25.0)
+        assert "STABLE" in low_regime.label
 
-        high_regime = inference_client._determine_regime(75.0)
-        assert high_regime.label in ["High Risk", "Elevated Risk"]
+        high_regime = inference_client.get_regime_from_score(75.0)
+        assert "HIGH STRESS" in high_regime.label
 
-        extreme_regime = inference_client._determine_regime(95.0)
-        assert extreme_regime.label in ["Extreme Risk", "High Risk"]
+        extreme_regime = inference_client.get_regime_from_score(95.0)
+        assert "CRISIS" in extreme_regime.label

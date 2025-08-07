@@ -99,7 +99,7 @@ class YFinanceAdapter(Adapter):
             data = ticker.history(period=f"{days}d")
             if data.empty:
                 raise ValueError(f"No historical data available for index {index}")
-            return {date.to_pydatetime(): float(close) for date, close in data["Close"].items()}
+            return {date: float(close) for date, close in data["Close"].items()}
 
         except Exception as e:
             raise ValueError(f"Failed to fetch historical data for {index}: {str(e)}")

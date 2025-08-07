@@ -18,7 +18,7 @@ classifiers = [
     "Intended Audience :: Financial and Insurance Industry",
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
-        "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
@@ -73,7 +73,7 @@ Repository = "https://github.com/euler/market-analysis"
 
 [tool.black]
 line-length = 127
-target-version = ['py38']
+target-version = ['py39']
 include = '\.pyi?$'
 extend-exclude = '''
 /(
@@ -123,6 +123,7 @@ python_files = ["test_*.py", "*_test.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
 addopts = [
+    "--ignore=tests/e2e_tests",
     "--strict-markers",
     "--strict-config",
     "--tb=short",

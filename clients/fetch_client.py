@@ -10,7 +10,11 @@ from adapters.buffet_indicator_adapter import BuffettIndicatorAdapter
 from adapters.yfinance_adapter import YFinanceAdapter
 from clients.client import Client
 from clients.logging_config import fetch_logger as logger
-from registries.indicator_registry import indicator_to_adapter_registry, indicators
+from registries.indicator_registry import (
+    get_enabled_indicators,
+    get_active_provider,
+    get_indicator_factory
+)
 
 
 @dataclass
@@ -48,14 +52,14 @@ class FetchClient(Client):
             market_data = []
             for indicator in self.indicators:
                 try:
-                    value = indicator.get_value()
-                    data = MarketData(indicator_name=indicator.__class__.__name__, value=value, timestamp=datetime.now())
+                    value = indicator.fetch_last_quote()
+                    data = MarketData(indicator_name=indicator.get_name(), value=value, timestamp=datetime.now())
                     market_data.append(data)
-                    logger.info(f"Fetched {indicator.__class__.__name__}: {value}")
+                    logger.info(f"Fetched {indicator.get_name()}: {value}")
                 except Exception as e:
-                    logger.error(f"Error fetching {indicator.__class__.__name__}: {str(e)}")
+                    logger.error(f"Error fetching {indicator.get_name()}: {str(e)}")
                     data = MarketData(
-                        indicator_name=indicator.__class__.__name__, value=0.0, timestamp=datetime.now(), error=str(e)
+                        indicator_name=indicator.get_name(), value=0.0, timestamp=datetime.now(), error=str(e)
                     )
                     market_data.append(data)
 
@@ -67,42 +71,37 @@ class FetchClient(Client):
             return []
 
     def _initialize_indicators(self) -> List:
-        """Initialize all market indicators from registry."""
+        """Initialize all enabled risk indicators from registry."""
         initialized_indicators = []
-        logger.info("\nInitializing indicators:")
+        logger.info("\nInitializing risk indicators:")
         logger.info("-" * 80)
 
-        for indicator_class in indicators:
+        enabled_indicators = get_enabled_indicators()
+        
+        for metric_name in enabled_indicators:
             try:
-                # Get the appropriate adapter for this indicator
-                class_name = indicator_class.__name__
-                logger.info(f"Initializing {class_name}...")
+                logger.info(f"Initializing {metric_name}...")
 
-                adapter_class = indicator_to_adapter_registry.get(class_name)
-                if adapter_class:
-                    # Get or create adapter instance
-                    adapter = self.adapters.get(adapter_class)
-                    if not adapter:
-                        logger.info(f"Creating new {adapter_class.__name__} instance")
-                        adapter = adapter_class()
-                        self.adapters[adapter_class] = adapter
-                    else:
-                        logger.info(f"Using existing {adapter_class.__name__} instance")
+                # Get the active provider for this metric
+                adapter = get_active_provider(metric_name)
+                logger.info(f"Using provider: {adapter.__class__.__name__}")
 
-                    # Initialize indicator with adapter
-                    indicator = indicator_class(adapter)
-                    initialized_indicators.append(indicator)
-                    logger.info(f"✓ Successfully initialized {class_name}")
-                else:
-                    logger.error(f"✗ No adapter found for {class_name}")
+                # Get the indicator factory and create indicator class
+                indicator_factory = get_indicator_factory(metric_name)
+                indicator_class = indicator_factory()
+                
+                # Initialize indicator with adapter
+                indicator = indicator_class(adapter)
+                initialized_indicators.append(indicator)
+                logger.info(f"✓ Successfully initialized {metric_name}")
 
             except Exception as e:
-                logger.error(f"✗ Failed to initialize {indicator_class.__name__}: {str(e)}")
+                logger.error(f"✗ Failed to initialize {metric_name}: {str(e)}")
 
         logger.info("-" * 80)
-        logger.info(f"Initialized {len(initialized_indicators)} indicators:")
+        logger.info(f"Initialized {len(initialized_indicators)} risk indicators:")
         for ind in initialized_indicators:
-            logger.info(f"• {ind.__class__.__name__}")
+            logger.info(f"• {ind.get_name()}")
         logger.info("")
 
         return initialized_indicators

@@ -18,18 +18,12 @@ from adapters.buffet_indicator_adapter import BuffettIndicatorAdapter
 
 # Import adapters
 from adapters.yfinance_adapter import YFinanceAdapter
-from indicators.live_indicators.buffett_indicator import BuffettIndicator
-from indicators.live_indicators.cpc_indicator import CPCIndicator
-from indicators.live_indicators.near_term_stress_ratio_indicator import NearTermStressRatioIndicator
-from indicators.live_indicators.six_month_term_slope_indicator import SixMonthTermSlopeIndicator
-from indicators.live_indicators.skew_indicator import SKEWIndicator
-from indicators.live_indicators.three_month_term_slope_indicator import ThreeMonthTermSlopeIndicator
-from indicators.live_indicators.vix3m_indicator import VIX3MIndicator
-from indicators.live_indicators.vix6m_indicator import VIX6MIndicator
-
-# Import all indicators
-from indicators.live_indicators.vix9d_indicator import VIX9DIndicator
-from indicators.live_indicators.vix_indicator import VIXIndicator
+from indicators.risk_indicators.buffett_indicator import BuffettIndicator
+from indicators.risk_indicators.cpc_indicator import CPCIndicator
+from indicators.risk_indicators.near_term_stress_ratio_indicator import NearTermStressRatioIndicator
+from indicators.risk_indicators.six_month_term_slope_indicator import SixMonthTermSlopeIndicator
+from indicators.risk_indicators.skew_indicator import SKEWIndicator
+from indicators.risk_indicators.three_month_term_slope_indicator import ThreeMonthTermSlopeIndicator
 
 
 @dataclass
@@ -100,12 +94,8 @@ def main():
     yfinance_adapter = YFinanceAdapter()
     buffett_adapter = BuffettIndicatorAdapter()
 
-    # Create indicator instances
+    # Create risk indicator instances (predictive indicators only)
     indicators = [
-        VIX9DIndicator(yfinance_adapter),
-        VIXIndicator(yfinance_adapter),
-        VIX3MIndicator(yfinance_adapter),
-        VIX6MIndicator(yfinance_adapter),
         SKEWIndicator(yfinance_adapter),
         CPCIndicator(yfinance_adapter),
         NearTermStressRatioIndicator(yfinance_adapter),

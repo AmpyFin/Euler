@@ -73,23 +73,8 @@ class ProcessingClient(Client):
     def calculate_score(self, indicator_name: str, value: float) -> float:
         """Calculate risk score (0-100) for an indicator value."""
         try:
-            # VIX-based indicators
-            if "VIX" in indicator_name:
-                if value <= 10:  # Extreme complacency
-                    score = max(0, 20 - 40 * (10 - value))  # Very low VIX can be a contrarian risk
-                elif value <= 15:  # Low volatility
-                    score = 20 + 15 * (value - 10) / 5
-                elif value <= 20:  # Normal range
-                    score = 35 + 15 * (value - 15) / 5
-                elif value <= 30:  # Elevated
-                    score = 50 + 25 * (value - 20) / 10
-                elif value <= 40:  # High stress
-                    score = 75 + 15 * (value - 30) / 10
-                else:  # Crisis
-                    score = min(100, 90 + 10 * (value - 40) / 40)
-
             # SKEW indicator
-            elif "SKEW" in indicator_name:
+            if "SKEW" in indicator_name:
                 if value <= 100:  # Below normal distribution
                     score = max(0, 25 - 25 * (100 - value) / 10)
                 elif value <= 110:  # Normal low range

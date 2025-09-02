@@ -27,7 +27,7 @@ sys.path.insert(0, project_root)
 from clients.client import Client
 from clients.logging_config import inference_logger as logger
 from clients.processing_client import ProcessedData
-from registries.indicator_registry import indicator_to_weights
+from registries.indicator_registry import get_indicator_weight
 
 logger = logging.getLogger(__name__)
 
@@ -59,19 +59,34 @@ class MarketAnalysis:
         self.timestamp = datetime.now()
 
 
-class LinearWeightedScorer:
-    """Linear weighted composite for market regime detection."""
+class WeightedCompositeScorer:
+    """Weighted composite scorer using the configured weighting method."""
 
     def __init__(self):
-        self.weights = indicator_to_weights
-        self._validate_weights()
-        logger.info("Initialized Linear Weighted Scorer")
-        logger.info(f"Using weights: {self.weights}")
+        from registries.indicator_registry import get_enabled_indicators
+        self.enabled_indicators = get_enabled_indicators()
+        logger.info("Initialized Weighted Composite Scorer")
+        logger.info("Using configured weighting method from weight registry")
 
-    def _validate_weights(self):
+    def _get_weights(self, current_scores: Dict[str, float]) -> Dict[str, float]:
+        """Get weights using the configured weighting method."""
+        from registries.weight_registry import get_current_weights, weight_registry
+        try:
+            weights = get_current_weights(current_scores)
+            self._validate_weights(weights)
+            return weights
+        except Exception as e:
+            logger.error(f"Error calculating weights: {e}")
+            # Fall back to equal weights
+            n = len(current_scores)
+            fallback_weights = {indicator: 1.0/n for indicator in current_scores.keys()}
+            self._validate_weights(fallback_weights)
+            return fallback_weights
+
+    def _validate_weights(self, weights: Dict[str, float]):
         """Validate that weights are properly configured."""
-        total_weight = sum(self.weights.values())
-        logger.info(f"Total weight sum: {total_weight:.3f}")
+        total_weight = sum(weights.values())
+        logger.debug(f"Weight sum: {total_weight:.3f}")
         if total_weight < 0.9 or total_weight > 1.1:
             logger.warning(f"Weight sum ({total_weight:.3f}) is not close to 1.0 - this may affect scoring accuracy")
 
@@ -82,9 +97,11 @@ class LinearWeightedScorer:
             total_weight = 0.0
             weighted_contributions = {}
 
+            # Get weights once for all indicators
+            weights = self._get_weights(indicator_scores)
+            
             for indicator_name, score in indicator_scores.items():
-                # Get the weight for this indicator
-                weight = self.weights.get(indicator_name, 0.0)
+                weight = weights.get(indicator_name, 0.0)
 
                 if weight > 0:
                     weighted_score = score * weight
@@ -118,8 +135,8 @@ class InferenceClient(Client):
         self.should_run = True
         self.inference_thread = threading.Thread(target=self.run_inference)
 
-        # Initialize linear weighted scorer
-        self.weighted_scorer = LinearWeightedScorer()
+        # Initialize weighted composite scorer
+        self.weighted_scorer = WeightedCompositeScorer()
 
     def get_name(self) -> str:
         """Get the name of this client."""
@@ -164,23 +181,13 @@ class InferenceClient(Client):
         return MarketRegime.CRISIS if score >= 100 else MarketRegime.EXTREME_CALM
 
     def get_all_indicators(self) -> List[str]:
-        """Get list of all registered indicators."""
-        return [
-            "^VIX9D",
-            "^VIX",
-            "^VIX3M",
-            "^VIX6M",
-            "^SKEW",
-            "Put/Call Ratio",
-            "Near-term Stress Ratio",
-            "3M Term Slope",
-            "6M Term Slope",
-            "Buffett Indicator",
-        ]
+        """Get list of all enabled risk indicators."""
+        from registries.indicator_registry import get_enabled_indicators
+        return get_enabled_indicators()
 
     def get_indicator_weight(self, indicator: str, value: float, score: float, all_data: Dict[str, ProcessedData]) -> float:
         """Get weight for indicator from registry."""
-        return indicator_to_weights.get(indicator, 0.0)
+        return get_indicator_weight(indicator)
 
     def analyze_market_state(self) -> Optional[MarketAnalysis]:
         """Analyze current market state using linear weighted composite."""
@@ -203,9 +210,13 @@ class InferenceClient(Client):
         logger.info("-" * 80)
         logger.info("Current Indicators:")
 
+        # Get the actual weights used for scoring
+        from registries.weight_registry import get_current_weights
+        actual_weights = get_current_weights(indicator_scores)
+        
         # Calculate weighted contributions for display
         for name, data in sorted(self.data_buffer.items()):
-            weight = self.get_indicator_weight(name, data.raw_value, data.score, self.data_buffer)
+            weight = actual_weights.get(name, 0.0)
             contribution = (data.score * weight / weighted_score) * 100 if weighted_score > 0 else 0
 
             # Handle string values

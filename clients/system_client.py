@@ -365,7 +365,7 @@ class SystemGUI(QMainWindow):
 
     def close(self):
         """Close the GUI window."""
-        self.close()
+        super().close()
 
 
 class SystemClient(Client):
@@ -392,6 +392,10 @@ class SystemClient(Client):
         self.run_continuously = getattr(control, "run_continuously", False)
         self.broadcast_network = getattr(control, "broadcast_network", "127.0.0.1")
         self.broadcast_port = getattr(control, "broadcast_port", 5000)
+        
+        # Weight registry is automatically initialized with configured default method
+        from registries.weight_registry import weight_registry
+        logger.info(f"Using weighting method: {weight_registry.get_active_method().value}")
 
         # Initialize network socket for unicast mode
         self.socket = None
